@@ -7,13 +7,38 @@ environment:
   sdk: '>=2.19.4 <3.0.0'
 
 dependencies:
+  cupertino_icons: ^1.0.5
   flutter:
     sdk: flutter
+  hive_flutter: ^1.1.0
+  
+  loading_animation_widget: ^1.2.0+4
+  provider: ^6.0.5
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^2.0.0
+  hive_generator: ^2.0.0
+  build_runner: ^2.3.3
+
 
 flutter:
   uses-material-design: true
+
+
+  assets:
+    - assets/images/
+
+  
+  fonts:
+    - family: Merriweather
+      fonts:
+        - asset: assets/fonts/Merriweather-Regular.ttf
+        - asset: assets/fonts/Merriweather-Bold.ttf
+          weight: 700
+    - family: NotoSerif
+      fonts:
+        - asset: assets/fonts/NotoSerif-Regular.ttf
+        - asset: assets/fonts/NotoSerif-Bold.ttf
+          weight: 700
