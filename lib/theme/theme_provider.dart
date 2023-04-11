@@ -10,17 +10,34 @@ class ThemeNotifier extends ChangeNotifier {
 
   ThemeNotifier({required this.box});
 
-  setTheme(AppTheme appTheme) async {
-    await box.put(_key, appTheme);
-    notifyListeners();
-  }
-
   ThemeData getTheme() {
     return _AppThemeConfig.getThemeData(
-      box.get(
-        _key,
-        defaultValue: AppTheme.light,
-      ),
+      getThemeName(),
     );
+  }
+
+  changeTheme() {
+    AppTheme currentAppTheme = getThemeName();
+    switch (currentAppTheme) {
+      case AppTheme.light:
+        _setTheme(AppTheme.dark);
+        break;
+      case AppTheme.dark:
+        _setTheme(AppTheme.light);
+        break;
+      default:
+    }
+  }
+
+  AppTheme getThemeName() {
+    return box.get(
+      _key,
+      defaultValue: AppTheme.light,
+    );
+  }
+
+  _setTheme(AppTheme appTheme) async {
+    await box.put(_key, appTheme);
+    notifyListeners();
   }
 }

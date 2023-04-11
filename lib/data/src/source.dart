@@ -1,1 +1,4 @@
-abstract class DataSource<T> {}
+abstract class DataSource<T> {
+  Future<void> connect();
+  Future<void> disconnect();
+}

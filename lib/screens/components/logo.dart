@@ -14,7 +14,7 @@ class Logo extends StatelessWidget {
         Icon(
           Icons.vpn_lock_rounded,
           size: 40,
-          color: themeData.colorScheme.primary,
+          color: themeData.colorScheme.onPrimary,
         ),
         const SizedBox(
           width: 4,
@@ -22,13 +22,13 @@ class Logo extends StatelessWidget {
         Text(
           'RTP',
           style: themeData.textTheme.headlineMedium!.copyWith(
-            color: themeData.colorScheme.onBackground,
+            color: themeData.colorScheme.onPrimary,
           ),
         ),
         Text(
           ' Tunnel',
           style: themeData.textTheme.titleLarge!.copyWith(
-            color: themeData.colorScheme.onBackground,
+            color: themeData.colorScheme.onPrimary,
           ),
         ),
       ],
