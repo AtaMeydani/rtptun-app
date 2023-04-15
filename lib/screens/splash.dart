@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 import 'components/logo.dart';
-import 'home.dart';
+import 'main/main.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -19,7 +19,7 @@ class _SplashScreenState extends State<SplashScreen> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => const HomeScreen(),
+          builder: (context) => const MainScreen(),
         ),
       );
     });
