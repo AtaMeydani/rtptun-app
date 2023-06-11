@@ -19,8 +19,10 @@ void main() async {
 
   await Hive.initFlutter();
   Hive.registerAdapter(LocationAdapter());
-  Hive.registerAdapter(AppThemeAdapter());
+  Hive.registerAdapter(ProtocolAdapter());
   Hive.registerAdapter(VPNEntityAdapter());
+  Hive.registerAdapter(AppThemeAdapter());
+
   await Hive.openBox(vpnBoxName);
   await Hive.openBox(appThemeBoxName);
 

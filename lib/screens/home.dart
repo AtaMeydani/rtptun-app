@@ -1,28 +1,47 @@
 import 'package:flutter/material.dart';
-import 'dart:math' as math;
-
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:rtptun_app/data/data.dart';
 import 'package:rtptun_app/data/repo/repository.dart';
-import 'package:rtptun_app/screens/components/logo.dart';
-import 'package:rtptun_app/theme/data/hive_data.dart';
-import 'package:rtptun_app/theme/theme_provider.dart';
+import 'dart:math' as math;
+
+import '../theme/data/hive_data.dart';
+import '../theme/theme_provider.dart';
+import 'components/logo.dart';
+
+enum MorePopupMenuItem {
+  serviceRestart,
+  deleteAllConfig,
+}
+
+enum AddPopupMenuItem {
+  importConfigFromQRcode,
+  importConfigFromClipboard,
+  typeManually,
+}
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  String twoDigits(int n) => n.toString().padLeft(2, '0');
+  final List<VPNEntity> items = [
+    VPNEntity(remark: 'UK', address: 'uk.mrgray.xyz', port: 6969, protocol: Protocol.rtp),
+    VPNEntity(remark: 'UK', address: 'uk.mrgray.xyz', port: 6969, protocol: Protocol.rtp),
+    VPNEntity(remark: 'UK', address: 'uk.mrgray.xyz', port: 6969, protocol: Protocol.rtp),
+    VPNEntity(remark: 'UK', address: 'uk.mrgray.xyz', port: 6969, protocol: Protocol.rtp),
+  ];
+
+  String dropdownValue = 'One';
 
   @override
   Widget build(BuildContext context) {
-    Size size = MediaQuery.of(context).size;
+    // Size size = MediaQuery.of(context).size;
     ThemeData themeData = Theme.of(context);
+
     return Scaffold(
       drawer: Drawer(
         child: ListView(
@@ -67,15 +86,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
-            const _CustomListTile(
+            const _CustomDrawerListTile(
               title: 'Change Language',
               leadingIcon: Icons.translate,
             ),
-            const _CustomListTile(
+            const _CustomDrawerListTile(
               title: 'Share App',
               leadingIcon: Icons.share,
             ),
-            const _CustomListTile(
+            const _CustomDrawerListTile(
               title: 'About',
               leadingIcon: Icons.info,
             ),
@@ -83,7 +102,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       appBar: AppBar(
-        elevation: 0,
+        elevation: 5,
         backgroundColor: themeData.colorScheme.primary,
         systemOverlayStyle: SystemUiOverlayStyle(
           statusBarColor: themeData.colorScheme.primary,
@@ -113,448 +132,65 @@ class _HomeScreenState extends State<HomeScreen> {
           const Expanded(
             child: Logo(),
           ),
-          IconButton(
-            icon: Icon(
-              Icons.settings_outlined,
-              color: themeData.colorScheme.onPrimary,
-            ),
-            onPressed: () {},
+          PopupMenuButton<AddPopupMenuItem>(
+            icon: const Icon(Icons.add),
+            // offset: Offset(0, 50),
+            itemBuilder: (BuildContext context) =>
+                AddPopupMenuItem.values.map<PopupMenuItem<AddPopupMenuItem>>((AddPopupMenuItem value) {
+              return PopupMenuItem<AddPopupMenuItem>(
+                value: value,
+                child: Text(value.name),
+              );
+            }).toList(),
+            onSelected: (AddPopupMenuItem value) {
+              // Do something when a menu item is selected.
+              print('Selected: $value');
+            },
+          ),
+          PopupMenuButton<MorePopupMenuItem>(
+            // offset: Offset(0, 50),
+            itemBuilder: (BuildContext context) =>
+                MorePopupMenuItem.values.map<PopupMenuItem<MorePopupMenuItem>>((MorePopupMenuItem value) {
+              return PopupMenuItem<MorePopupMenuItem>(
+                value: value,
+                child: Text(value.name),
+              );
+            }).toList(),
+            onSelected: (MorePopupMenuItem value) {
+              // Do something when a menu item is selected.
+              print('Selected: $value');
+            },
           ),
         ],
       ),
-      backgroundColor: themeData.colorScheme.primary,
+      backgroundColor: themeData.colorScheme.background,
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: const _CustomFloatingActionButton(),
       body: SafeArea(
-        child: Stack(
-          children: [
-            SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: Column(
-                children: [
-                  _ConnectButton(size: size),
-                  const SizedBox(
-                    height: 12,
-                  ),
-                  Container(
-                    alignment: Alignment.center,
-                    width: size.height * 0.14,
-                    height: size.height * 0.030,
-                    decoration: BoxDecoration(
-                      color: themeData.colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: Selector<Repository<VPNEntity>, bool>(
-                      selector: (_, Repository<VPNEntity> vpn) => vpn.isConnected,
-                      builder: (BuildContext context, isConnected, Widget? child) {
-                        return Text(
-                          isConnected ? 'Connected' : 'Not Connected',
-                          style: themeData.textTheme.labelLarge!.copyWith(
-                            fontSize: size.height * 0.015,
-                            color: themeData.colorScheme.onPrimaryContainer,
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 12,
-                  ),
-                  Selector<Repository<VPNEntity>, int>(
-                    selector: (_, Repository<VPNEntity> vpn) => vpn.seconds,
-                    builder: (BuildContext context, vpn, Widget? child) {
-                      Duration duration = Duration(seconds: vpn);
-                      final minutes = twoDigits(duration.inMinutes.remainder(60));
-                      final seconds = twoDigits(duration.inSeconds.remainder(60));
-                      final hours = twoDigits(duration.inHours.remainder(60));
-                      return Text(
-                        '$hours : $minutes : $seconds',
-                        style: TextStyle(color: Colors.white, fontSize: size.height * 0.03),
-                      );
-                    },
-                  ),
-                  const _ChangeLocationButton()
-                ],
-              ),
-            ),
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: DraggableScrollableSheet(
-                initialChildSize: 0.4,
-                minChildSize: 0.1,
-                maxChildSize: 0.5,
-                builder: (_, ScrollController scrollController) => Container(
-                  width: double.maxFinite,
-                  decoration: BoxDecoration(
-                    color: themeData.colorScheme.background,
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(24.0),
-                      topRight: Radius.circular(24.0),
-                    ),
-                  ),
-                  child: SingleChildScrollView(
-                    controller: scrollController,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        Icon(
-                          Icons.keyboard_double_arrow_up_rounded,
-                          size: 48,
-                          color: themeData.colorScheme.primary,
-                        ),
-                        const SizedBox(
-                          height: 15,
-                        ),
-                        _LocationInfo(size: size),
-                        const SizedBox(
-                          height: 15,
-                        ),
-                        _SpeedInfo(size: size),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
+        child: ListView.builder(
+          physics: const BouncingScrollPhysics(),
+          itemCount: items.length,
+          itemBuilder: (context, index) {
+            return Selector<Repository<VPNEntity>, bool>(
+                selector: (_, Repository<VPNEntity> vpn) => vpn.selectedItemIndex == index,
+                builder: (BuildContext context, isSelected, Widget? child) {
+                  return _CustomConfigListTile(
+                    vpnEntity: items[index],
+                    isSelected: isSelected,
+                    index: index,
+                  );
+                });
+          },
         ),
       ),
     );
   }
 }
 
-class _ConnectButton extends StatelessWidget {
-  const _ConnectButton({
-    required this.size,
-  });
-
-  final Size size;
-
-  @override
-  Widget build(BuildContext context) {
-    ThemeData themeData = Theme.of(context);
-
-    return InkWell(
-      borderRadius: BorderRadius.circular(size.height),
-      onTap: () {
-        final Repository<VPNEntity> vpn = context.read<Repository<VPNEntity>>();
-        if (vpn.isConnected) {
-          vpn.disconnect();
-        } else {
-          vpn.connect();
-        }
-      },
-      child: Container(
-        padding: const EdgeInsets.all(15),
-        margin: const EdgeInsets.all(15),
-        decoration: BoxDecoration(
-          color: themeData.colorScheme.inversePrimary,
-          shape: BoxShape.circle,
-        ),
-        child: Container(
-          padding: const EdgeInsets.all(15),
-          decoration: BoxDecoration(
-            color: themeData.colorScheme.primary.withOpacity(.5),
-            shape: BoxShape.circle,
-          ),
-          child: Container(
-            width: size.height * 0.13,
-            height: size.height * 0.13,
-            decoration: BoxDecoration(
-              color: themeData.colorScheme.onPrimary,
-              shape: BoxShape.circle,
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(5),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.power_settings_new,
-                    size: size.height * 0.035,
-                    color: themeData.colorScheme.primary,
-                  ),
-                  const SizedBox(
-                    height: 5,
-                  ),
-                  Selector<Repository<VPNEntity>, bool>(
-                    selector: (_, Repository<VPNEntity> vpn) => vpn.isConnected,
-                    builder: (BuildContext context, vpn, Widget? child) {
-                      return Text(
-                        vpn ? 'Disconnect' : 'Tap to Connect',
-                        style: TextStyle(
-                          fontSize: size.height * 0.013,
-                          fontWeight: FontWeight.w500,
-                          color: themeData.colorScheme.primary,
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ChangeLocationButton extends StatelessWidget {
-  const _ChangeLocationButton();
-
-  @override
-  Widget build(BuildContext context) {
-    ThemeData themeData = Theme.of(context);
-    return InkWell(
-      onTap: () {
-        // Navigator.push(context, MaterialPageRoute(builder: (context) => const ServerLocation()));
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: themeData.colorScheme.secondary,
-          borderRadius: BorderRadius.circular(30),
-        ),
-        padding: const EdgeInsets.symmetric(
-          vertical: 15,
-          horizontal: 20,
-        ),
-        margin: const EdgeInsets.symmetric(
-          vertical: 15,
-          horizontal: 20,
-        ),
-        child: Row(
-          children: [
-            Icon(
-              Icons.location_pin,
-              color: themeData.colorScheme.onSecondary,
-            ),
-            Text(
-              ' Change Location',
-              style: themeData.textTheme.titleMedium!.copyWith(
-                color: themeData.colorScheme.onSecondary,
-              ),
-            ),
-            const Spacer(),
-            Container(
-              width: 25,
-              decoration: BoxDecoration(
-                color: themeData.colorScheme.onSecondary,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.keyboard_arrow_right_outlined,
-                size: 25,
-                color: themeData.colorScheme.secondary,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SpeedInfo extends StatelessWidget {
-  const _SpeedInfo({
-    required this.size,
-  });
-
-  final Size size;
-
-  @override
-  Widget build(BuildContext context) {
-    ThemeData themeData = Theme.of(context);
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
-        Column(
-          children: [
-            Container(
-              width: size.height * 0.07,
-              height: size.height * 0.07,
-              decoration: BoxDecoration(
-                color: themeData.colorScheme.primary,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.arrow_downward,
-                color: themeData.colorScheme.background,
-                size: 30,
-              ),
-            ),
-            const SizedBox(
-              height: 5,
-            ),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '15,47',
-                  style: themeData.textTheme.titleMedium!.copyWith(
-                    color: themeData.colorScheme.onBackground,
-                  ),
-                ),
-                Text(
-                  ' mbps',
-                  style: themeData.textTheme.titleSmall!.copyWith(
-                    color: themeData.colorScheme.onBackground,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(
-              height: 5,
-            ),
-            Text(
-              'DOWNLOAD',
-              style: themeData.textTheme.titleSmall!.copyWith(
-                color: themeData.colorScheme.onBackground.withOpacity(.3),
-              ),
-            ),
-          ],
-        ),
-        Column(
-          children: [
-            Container(
-              width: size.height * 0.07,
-              height: size.height * 0.07,
-              decoration: BoxDecoration(
-                color: themeData.colorScheme.secondary,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.arrow_upward,
-                color: themeData.colorScheme.background,
-                size: 30,
-              ),
-            ),
-            const SizedBox(
-              height: 5,
-            ),
-            Row(
-              children: [
-                Text(
-                  '250',
-                  style: themeData.textTheme.titleMedium!.copyWith(
-                    color: themeData.colorScheme.onBackground,
-                  ),
-                ),
-                Text(
-                  ' mbps',
-                  style: themeData.textTheme.titleSmall!.copyWith(
-                    color: themeData.colorScheme.onBackground,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(
-              height: 5,
-            ),
-            Text(
-              'UPLOAD',
-              style: themeData.textTheme.titleSmall!.copyWith(
-                color: themeData.colorScheme.onBackground.withOpacity(.3),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-class _LocationInfo extends StatelessWidget {
-  const _LocationInfo({
-    required this.size,
-  });
-
-  final Size size;
-
-  @override
-  Widget build(BuildContext context) {
-    ThemeData themeData = Theme.of(context);
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Column(
-          children: [
-            SizedBox(
-              height: size.height * 0.07,
-              width: size.height * 0.07,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(50),
-                child: Image.asset(
-                  'assets/images/england.png',
-                  fit: BoxFit.fill,
-                ),
-              ),
-            ),
-            const SizedBox(
-              height: 5,
-            ),
-            Text(
-              'UK',
-              style: themeData.textTheme.titleMedium!.copyWith(
-                color: themeData.colorScheme.onBackground,
-              ),
-            ),
-          ],
-        ),
-        Column(
-          children: [
-            Container(
-              width: size.height * 0.07,
-              height: size.height * 0.07,
-              decoration: BoxDecoration(
-                color: Colors.orange.shade700,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.equalizer_rounded,
-                color: themeData.colorScheme.background,
-                size: 30,
-              ),
-            ),
-            const SizedBox(
-              height: 5,
-            ),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '10',
-                  style: themeData.textTheme.titleMedium!.copyWith(
-                    color: themeData.colorScheme.onBackground,
-                  ),
-                ),
-                Text(
-                  ' ms',
-                  style: themeData.textTheme.titleSmall!.copyWith(
-                    color: themeData.colorScheme.onBackground,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(
-              height: 5,
-            ),
-            Text(
-              'PING',
-              style: themeData.textTheme.titleSmall!.copyWith(
-                color: themeData.colorScheme.onBackground.withOpacity(.3),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-class _CustomListTile extends StatelessWidget {
+class _CustomDrawerListTile extends StatelessWidget {
   final String title;
   final IconData leadingIcon;
-  const _CustomListTile({
+  const _CustomDrawerListTile({
     required this.title,
     required this.leadingIcon,
   });
@@ -578,5 +214,150 @@ class _CustomListTile extends StatelessWidget {
         size: 16,
       ),
     );
+  }
+}
+
+class _CustomConfigListTile extends StatelessWidget {
+  final VPNEntity vpnEntity;
+  final bool isSelected;
+  final int index;
+  static const radius = 20.0;
+
+  const _CustomConfigListTile({
+    required this.vpnEntity,
+    required this.isSelected,
+    required this.index,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    ThemeData themeData = Theme.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 5),
+      child: ListTile(
+        visualDensity: VisualDensity.standard,
+        selectedTileColor: themeData.colorScheme.secondaryContainer,
+        selected: isSelected,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(radius),
+        ),
+        minLeadingWidth: 10,
+        titleTextStyle: themeData.textTheme.titleSmall,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 5),
+        onTap: () {
+          final Repository<VPNEntity> vpn = context.read<Repository<VPNEntity>>();
+          vpn.setSelectedItemIndex(index);
+        },
+        leading: Container(
+          width: 10,
+          decoration: BoxDecoration(
+            color: isSelected ? themeData.colorScheme.primary : themeData.colorScheme.secondary,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(radius),
+              bottomLeft: Radius.circular(radius),
+            ),
+          ),
+        ),
+        title: Text(
+          vpnEntity.remark,
+        ),
+        subtitle: Text(
+          '${vpnEntity.address} : ${vpnEntity.port}',
+          style: themeData.textTheme.titleSmall,
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.share),
+              onPressed: () {},
+            ),
+            IconButton(
+              icon: const Icon(Icons.edit),
+              onPressed: () {
+                // Navigator.push(context, MaterialPageRoute(builder: (context) => const Edit()));
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.delete_forever),
+              onPressed: () {},
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CustomFloatingActionButton extends StatefulWidget {
+  const _CustomFloatingActionButton();
+
+  @override
+  // ignore: library_private_types_in_public_api
+  _CustomFloatingActionButtonState createState() => _CustomFloatingActionButtonState();
+}
+
+class _CustomFloatingActionButtonState extends State<_CustomFloatingActionButton> with SingleTickerProviderStateMixin {
+  String twoDigits(int n) => n.toString().padLeft(2, '0');
+  late AnimationController _animationController;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(vsync: this, duration: const Duration(seconds: 1));
+    _animation = Tween<double>(begin: 0, end: 1).animate(_animationController);
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    ThemeData themeData = Theme.of(context);
+
+    return Selector<Repository<VPNEntity>, bool>(
+        selector: (_, Repository<VPNEntity> vpn) => vpn.isConnected,
+        builder: (BuildContext context, isConnected, Widget? child) {
+          return FloatingActionButton.extended(
+            backgroundColor: isConnected ? themeData.colorScheme.primary : themeData.colorScheme.secondary,
+            extendedPadding: const EdgeInsets.all(20),
+            extendedIconLabelSpacing: 10,
+            icon: RotationTransition(
+              turns: _animation,
+              child: Icon(
+                isConnected ? Icons.power_settings_new : Icons.power_off,
+              ),
+            ),
+            onPressed: () {
+              final Repository<VPNEntity> vpn = context.read<Repository<VPNEntity>>();
+              vpn.toggle();
+              if (_animationController.status == AnimationStatus.completed) {
+                _animationController.reverse();
+              } else {
+                _animationController.forward();
+              }
+            },
+            label: Column(children: [
+              Text(isConnected ? 'Disconnect' : 'Tap to Connect'),
+              Selector<Repository<VPNEntity>, int>(
+                selector: (_, Repository<VPNEntity> vpn) => vpn.seconds,
+                builder: (BuildContext context, vpn, Widget? child) {
+                  Duration duration = Duration(seconds: vpn);
+                  final minutes = twoDigits(duration.inMinutes.remainder(60));
+                  final seconds = twoDigits(duration.inSeconds.remainder(60));
+                  final hours = twoDigits(duration.inHours.remainder(60));
+                  return Text(
+                    '$hours : $minutes : $seconds',
+                  );
+                },
+              ),
+            ]),
+          );
+        });
   }
 }

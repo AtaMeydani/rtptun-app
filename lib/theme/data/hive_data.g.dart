@@ -8,7 +8,7 @@ part of 'hive_data.dart';
 
 class AppThemeAdapter extends TypeAdapter<AppTheme> {
   @override
-  final int typeId = 1;
+  final int typeId = 0;
 
   @override
   AppTheme read(BinaryReader reader) {

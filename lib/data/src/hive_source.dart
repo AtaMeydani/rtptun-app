@@ -16,4 +16,15 @@ class HiveDataSource implements DataSource<VPNEntity> {
   disconnect() {
     return box.put('isConnected', false);
   }
+
+  @override
+  int get selectedItemIndex => box.get('selectedItemIndex', defaultValue: -1);
+
+  @override
+  Future<void> setSelectedItemIndex(int index) {
+    return box.put('selectedItemIndex', index);
+  }
+
+  @override
+  bool get isConnected => box.get('isConnected', defaultValue: false);
 }

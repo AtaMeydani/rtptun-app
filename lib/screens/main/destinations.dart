@@ -11,5 +11,5 @@ class _Destination {
 
 const List<_Destination> _allDestinations = <_Destination>[
   _Destination(0, 'Home', Icons.home, Colors.teal, HomeScreen()),
-  _Destination(1, 'Log', Icons.event_note, Colors.cyan, HomeScreen()),
+  _Destination(1, 'Log', Icons.event_note, Colors.cyan, Text('data')),
 ];

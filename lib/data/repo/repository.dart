@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../src/source.dart';
 
 class Repository<T> with ChangeNotifier implements DataSource {
-  bool isConnected = false;
   Timer? _timer;
   int seconds = 0;
 
@@ -14,29 +13,46 @@ class Repository<T> with ChangeNotifier implements DataSource {
 
   @override
   connect() async {
-    isConnected = true;
     await localDataSource.connect();
-    notifyListeners();
     _startTimer();
   }
 
   @override
   disconnect() async {
-    isConnected = false;
     await localDataSource.disconnect();
     _stopTimer();
   }
 
-  _startTimer() {
+  @override
+  int get selectedItemIndex => localDataSource.selectedItemIndex;
+
+  @override
+  Future<void> setSelectedItemIndex(int index) async {
+    await localDataSource.setSelectedItemIndex(index);
+    notifyListeners();
+  }
+
+  Future<void> toggle() async {
+    if (isConnected) {
+      await disconnect();
+    } else {
+      await connect();
+    }
+    notifyListeners();
+  }
+
+  void _startTimer() {
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       seconds++;
       notifyListeners();
     });
   }
 
-  _stopTimer() {
+  void _stopTimer() {
     _timer?.cancel();
     seconds = 0;
-    notifyListeners();
   }
+
+  @override
+  bool get isConnected => localDataSource.isConnected;
 }

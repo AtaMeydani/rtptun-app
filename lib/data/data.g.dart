@@ -8,7 +8,7 @@ part of 'data.dart';
 
 class VPNEntityAdapter extends TypeAdapter<VPNEntity> {
   @override
-  final int typeId = 0;
+  final int typeId = 1;
 
   @override
   VPNEntity read(BinaryReader reader) {
@@ -16,15 +16,26 @@ class VPNEntityAdapter extends TypeAdapter<VPNEntity> {
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return VPNEntity()..vpnLocation = fields[0] as Location;
+    return VPNEntity(
+      remark: fields[0] as String,
+      address: fields[1] as String,
+      port: fields[2] as int,
+      protocol: fields[3] as Protocol,
+    );
   }
 
   @override
   void write(BinaryWriter writer, VPNEntity obj) {
     writer
-      ..writeByte(1)
+      ..writeByte(4)
       ..writeByte(0)
-      ..write(obj.vpnLocation);
+      ..write(obj.remark)
+      ..writeByte(1)
+      ..write(obj.address)
+      ..writeByte(2)
+      ..write(obj.port)
+      ..writeByte(3)
+      ..write(obj.protocol);
   }
 
   @override
@@ -38,9 +49,43 @@ class VPNEntityAdapter extends TypeAdapter<VPNEntity> {
           typeId == other.typeId;
 }
 
-class LocationAdapter extends TypeAdapter<Location> {
+class ProtocolAdapter extends TypeAdapter<Protocol> {
   @override
   final int typeId = 2;
+
+  @override
+  Protocol read(BinaryReader reader) {
+    switch (reader.readByte()) {
+      case 0:
+        return Protocol.rtp;
+      default:
+        return Protocol.rtp;
+    }
+  }
+
+  @override
+  void write(BinaryWriter writer, Protocol obj) {
+    switch (obj) {
+      case Protocol.rtp:
+        writer.writeByte(0);
+        break;
+    }
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ProtocolAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}
+
+class LocationAdapter extends TypeAdapter<Location> {
+  @override
+  final int typeId = 3;
 
   @override
   Location read(BinaryReader reader) {
