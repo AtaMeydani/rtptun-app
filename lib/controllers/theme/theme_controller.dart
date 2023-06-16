@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:rtptun_app/models/theme/theme_model.dart';
 
-import 'data/hive_data.dart';
 part 'theme_config.dart';
 
-class ThemeNotifier extends ChangeNotifier {
+class ThemeController with ChangeNotifier {
   static const String _key = "theme";
   final Box box;
 
-  ThemeNotifier({required this.box});
+  ThemeController({required this.box});
 
   ThemeData getTheme() {
     return _AppThemeConfig.getThemeData(

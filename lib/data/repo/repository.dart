@@ -1,26 +1,30 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+// import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+
+import '../consts.dart';
+import '../src/hive_source.dart';
 import '../src/source.dart';
 
-class Repository<T> with ChangeNotifier implements DataSource {
-  Timer? _timer;
-  int seconds = 0;
+class Repository implements DataSource {
+  final DataSource localDataSource;
 
-  final DataSource<T> localDataSource;
+  static final Repository instance = Repository._privateConstructor(
+    HiveDataSource(
+      Hive.box(vpnBoxName),
+    ),
+  );
 
-  // depedency injection
-  Repository(this.localDataSource);
+  Repository._privateConstructor(this.localDataSource);
 
   @override
-  connect() async {
+  Future<void> connect() async {
     await localDataSource.connect();
-    _startTimer();
   }
 
   @override
-  disconnect() async {
+  Future<void> disconnect() async {
     await localDataSource.disconnect();
-    _stopTimer();
   }
 
   @override
@@ -29,28 +33,6 @@ class Repository<T> with ChangeNotifier implements DataSource {
   @override
   Future<void> setSelectedItemIndex(int index) async {
     await localDataSource.setSelectedItemIndex(index);
-    notifyListeners();
-  }
-
-  Future<void> toggle() async {
-    if (isConnected) {
-      await disconnect();
-    } else {
-      await connect();
-    }
-    notifyListeners();
-  }
-
-  void _startTimer() {
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      seconds++;
-      notifyListeners();
-    });
-  }
-
-  void _stopTimer() {
-    _timer?.cancel();
-    seconds = 0;
   }
 
   @override

@@ -1,5 +1,5 @@
 import 'package:hive_flutter/hive_flutter.dart';
-part 'hive_data.g.dart';
+part 'theme_model.g.dart';
 
 @HiveType(typeId: 0)
 enum AppTheme {

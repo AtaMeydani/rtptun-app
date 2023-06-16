@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
-import 'package:rtptun_app/consts.dart';
-import 'package:rtptun_app/data/data.dart';
-import 'package:rtptun_app/data/repo/repository.dart';
-import 'package:rtptun_app/data/src/hive_source.dart';
-import 'package:rtptun_app/screens/splash.dart';
-import 'package:rtptun_app/theme/data/hive_data.dart';
-import 'package:rtptun_app/theme/theme_provider.dart';
+import 'package:rtptun_app/data/consts.dart';
+import 'package:rtptun_app/models/rtp/rtp_model.dart';
+
+import 'controllers/home/home_screen_controller.dart';
+import 'controllers/theme/theme_controller.dart';
+import 'models/theme/theme_model.dart';
+import 'views/splash_screen/splash.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,9 +18,7 @@ void main() async {
   ]);
 
   await Hive.initFlutter();
-  Hive.registerAdapter(LocationAdapter());
-  Hive.registerAdapter(ProtocolAdapter());
-  Hive.registerAdapter(VPNEntityAdapter());
+  Hive.registerAdapter(RTPAdapter());
   Hive.registerAdapter(AppThemeAdapter());
 
   await Hive.openBox(vpnBoxName);
@@ -29,17 +27,13 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider<ThemeNotifier>(
-          create: (context) => ThemeNotifier(
+        ChangeNotifierProvider<ThemeController>(
+          create: (context) => ThemeController(
             box: Hive.box(appThemeBoxName),
           ),
         ),
-        ChangeNotifierProvider<Repository<VPNEntity>>(
-          create: (BuildContext context) => Repository<VPNEntity>(
-            HiveDataSource(
-              Hive.box(vpnBoxName),
-            ),
-          ),
+        ChangeNotifierProvider<HomeScreenController>(
+          create: (BuildContext context) => HomeScreenController(),
         ),
       ],
       child: const MyApp(),
@@ -52,7 +46,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ThemeNotifier>(
+    return Consumer<ThemeController>(
       builder: (BuildContext context, themeManager, Widget? child) {
         return MaterialApp(
           debugShowCheckedModeBanner: false,

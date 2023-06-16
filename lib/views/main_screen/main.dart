@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
-import '../home.dart';
+import '../home_screen/home.dart';
 
 part 'destination_view.dart';
 part 'destinations.dart';

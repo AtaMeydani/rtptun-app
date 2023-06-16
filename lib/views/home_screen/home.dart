@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:rtptun_app/data/data.dart';
-import 'package:rtptun_app/data/repo/repository.dart';
+import 'package:rtptun_app/controllers/home/home_screen_controller.dart';
+import 'package:rtptun_app/models/rtp/rtp_model.dart';
+import 'package:rtptun_app/models/theme/theme_model.dart';
 import 'dart:math' as math;
 
-import '../theme/data/hive_data.dart';
-import '../theme/theme_provider.dart';
-import 'components/logo.dart';
+import '../../controllers/theme/theme_controller.dart';
+import '../components/logo.dart';
 
 enum MorePopupMenuItem {
   serviceRestart,
@@ -28,11 +28,11 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final List<VPNEntity> items = [
-    VPNEntity(remark: 'UK', address: 'uk.mrgray.xyz', port: 6969, protocol: Protocol.rtp),
-    VPNEntity(remark: 'UK', address: 'uk.mrgray.xyz', port: 6969, protocol: Protocol.rtp),
-    VPNEntity(remark: 'UK', address: 'uk.mrgray.xyz', port: 6969, protocol: Protocol.rtp),
-    VPNEntity(remark: 'UK', address: 'uk.mrgray.xyz', port: 6969, protocol: Protocol.rtp),
+  final List<RTP> items = [
+    RTP(remark: 'UK', address: 'uk.mrgray.xyz', port: 6969),
+    RTP(remark: 'UK', address: 'uk.mrgray.xyz', port: 6969),
+    RTP(remark: 'UK', address: 'uk.mrgray.xyz', port: 6969),
+    RTP(remark: 'UK', address: 'uk.mrgray.xyz', port: 6969),
   ];
 
   String dropdownValue = 'One';
@@ -58,7 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   const Logo(),
                   Align(
                     alignment: Alignment.bottomCenter,
-                    child: Consumer<ThemeNotifier>(
+                    child: Consumer<ThemeController>(
                       builder: (BuildContext context, themeNotifier, Widget? child) {
                         IconData iconData;
                         switch (themeNotifier.getThemeName()) {
@@ -171,8 +171,8 @@ class _HomeScreenState extends State<HomeScreen> {
           physics: const BouncingScrollPhysics(),
           itemCount: items.length,
           itemBuilder: (context, index) {
-            return Selector<Repository<VPNEntity>, bool>(
-                selector: (_, Repository<VPNEntity> vpn) => vpn.selectedItemIndex == index,
+            return Selector<HomeScreenController, bool>(
+                selector: (_, HomeScreenController vpn) => vpn.selectedItemIndex == index,
                 builder: (BuildContext context, isSelected, Widget? child) {
                   return _CustomConfigListTile(
                     vpnEntity: items[index],
@@ -218,7 +218,7 @@ class _CustomDrawerListTile extends StatelessWidget {
 }
 
 class _CustomConfigListTile extends StatelessWidget {
-  final VPNEntity vpnEntity;
+  final RTP vpnEntity;
   final bool isSelected;
   final int index;
   static const radius = 20.0;
@@ -246,7 +246,7 @@ class _CustomConfigListTile extends StatelessWidget {
         titleTextStyle: themeData.textTheme.titleSmall,
         contentPadding: const EdgeInsets.symmetric(horizontal: 5),
         onTap: () {
-          final Repository<VPNEntity> vpn = context.read<Repository<VPNEntity>>();
+          final HomeScreenController vpn = context.read<HomeScreenController>();
           vpn.setSelectedItemIndex(index);
         },
         leading: Container(
@@ -320,8 +320,8 @@ class _CustomFloatingActionButtonState extends State<_CustomFloatingActionButton
   Widget build(BuildContext context) {
     ThemeData themeData = Theme.of(context);
 
-    return Selector<Repository<VPNEntity>, bool>(
-        selector: (_, Repository<VPNEntity> vpn) => vpn.isConnected,
+    return Selector<HomeScreenController, bool>(
+        selector: (_, HomeScreenController vpn) => vpn.isConnected,
         builder: (BuildContext context, isConnected, Widget? child) {
           return FloatingActionButton.extended(
             backgroundColor: isConnected ? themeData.colorScheme.primary : themeData.colorScheme.secondary,
@@ -334,7 +334,7 @@ class _CustomFloatingActionButtonState extends State<_CustomFloatingActionButton
               ),
             ),
             onPressed: () {
-              final Repository<VPNEntity> vpn = context.read<Repository<VPNEntity>>();
+              final HomeScreenController vpn = context.read<HomeScreenController>();
               vpn.toggle();
               if (_animationController.status == AnimationStatus.completed) {
                 _animationController.reverse();
@@ -344,8 +344,8 @@ class _CustomFloatingActionButtonState extends State<_CustomFloatingActionButton
             },
             label: Column(children: [
               Text(isConnected ? 'Disconnect' : 'Tap to Connect'),
-              Selector<Repository<VPNEntity>, int>(
-                selector: (_, Repository<VPNEntity> vpn) => vpn.seconds,
+              Selector<HomeScreenController, int>(
+                selector: (_, HomeScreenController vpn) => vpn.seconds,
                 builder: (BuildContext context, vpn, Widget? child) {
                   Duration duration = Duration(seconds: vpn);
                   final minutes = twoDigits(duration.inMinutes.remainder(60));

@@ -1,4 +1,4 @@
-part of 'theme_provider.dart';
+part of 'theme_controller.dart';
 
 class _AppThemeConfig {
   static const ColorScheme darkColorScheme = ColorScheme(

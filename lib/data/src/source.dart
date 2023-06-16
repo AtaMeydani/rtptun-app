@@ -1,4 +1,4 @@
-abstract class DataSource<T> {
+abstract class DataSource {
   Future<void> connect();
   Future<void> disconnect();
   bool get isConnected;
