@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:rtptun_app/controllers/config/config_controller.dart';
 import 'package:rtptun_app/controllers/home/home_screen_controller.dart';
+import 'package:rtptun_app/controllers/data/repo/repository.dart';
 import 'package:rtptun_app/models/rtp/rtp_model.dart';
 import 'package:rtptun_app/models/theme/theme_model.dart';
+import 'package:rtptun_app/models/vpn/vpn_model.dart';
+import 'package:rtptun_app/views/edit_config_screen/edit_config.dart';
 import 'dart:math' as math;
 
 import '../../controllers/theme/theme_controller.dart';
@@ -28,15 +32,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final List<RTP> items = [
-    RTP(remark: 'UK', address: 'uk.mrgray.xyz', port: 6969),
-    RTP(remark: 'UK', address: 'uk.mrgray.xyz', port: 6969),
-    RTP(remark: 'UK', address: 'uk.mrgray.xyz', port: 6969),
-    RTP(remark: 'UK', address: 'uk.mrgray.xyz', port: 6969),
-  ];
-
-  String dropdownValue = 'One';
-
   @override
   Widget build(BuildContext context) {
     // Size size = MediaQuery.of(context).size;
@@ -144,7 +139,28 @@ class _HomeScreenState extends State<HomeScreen> {
             }).toList(),
             onSelected: (AddPopupMenuItem value) {
               // Do something when a menu item is selected.
-              print('Selected: $value');
+              switch (value) {
+                case AddPopupMenuItem.typeManually:
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ChangeNotifierProvider<ConfigController>(
+                        create: (context) => ConfigController(
+                          repository: context.read<Repository>(),
+                          vpnConfig: RTP(),
+                        ),
+                        child: const EditConfigScreen(),
+                      ),
+                    ),
+                  );
+                  break;
+                case AddPopupMenuItem.importConfigFromQRcode:
+                  // TODO: Handle this case.
+                  break;
+                case AddPopupMenuItem.importConfigFromClipboard:
+                  // TODO: Handle this case.
+                  break;
+              }
             },
           ),
           PopupMenuButton<MorePopupMenuItem>(
@@ -158,7 +174,6 @@ class _HomeScreenState extends State<HomeScreen> {
             }).toList(),
             onSelected: (MorePopupMenuItem value) {
               // Do something when a menu item is selected.
-              print('Selected: $value');
             },
           ),
         ],
@@ -167,19 +182,28 @@ class _HomeScreenState extends State<HomeScreen> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: const _CustomFloatingActionButton(),
       body: SafeArea(
-        child: ListView.builder(
-          physics: const BouncingScrollPhysics(),
-          itemCount: items.length,
-          itemBuilder: (context, index) {
-            return Selector<HomeScreenController, bool>(
-                selector: (_, HomeScreenController vpn) => vpn.selectedItemIndex == index,
-                builder: (BuildContext context, isSelected, Widget? child) {
-                  return _CustomConfigListTile(
-                    vpnEntity: items[index],
-                    isSelected: isSelected,
-                    index: index,
-                  );
-                });
+        child: Selector<Repository, List<VPN>>(
+          selector: (_, Repository repository) => repository.configs,
+          builder: (BuildContext context, List<VPN> configs, Widget? child) {
+            return ListView.builder(
+              physics: const BouncingScrollPhysics(),
+              itemCount: configs.length,
+              itemBuilder: (context, index) {
+                return Selector<Repository, ({bool isSelected, ({String title, String subtitle}) info})>(
+                    selector: (_, Repository repository) => (
+                          isSelected: repository.selectedConfig == configs[index],
+                          info: repository.getConfigListTileInfo(index)
+                        ),
+                    builder: (BuildContext context, ({bool isSelected, ({String title, String subtitle}) info}) record,
+                        Widget? child) {
+                      return _CustomConfigListTile(
+                        isSelected: record.isSelected,
+                        info: record.info,
+                        config: configs[index],
+                      );
+                    });
+              },
+            );
           },
         ),
       ),
@@ -218,15 +242,15 @@ class _CustomDrawerListTile extends StatelessWidget {
 }
 
 class _CustomConfigListTile extends StatelessWidget {
-  final RTP vpnEntity;
   final bool isSelected;
-  final int index;
+  final ({String title, String subtitle}) info;
+  final VPN config;
   static const radius = 20.0;
 
   const _CustomConfigListTile({
-    required this.vpnEntity,
     required this.isSelected,
-    required this.index,
+    required this.info,
+    required this.config,
   });
 
   @override
@@ -246,8 +270,7 @@ class _CustomConfigListTile extends StatelessWidget {
         titleTextStyle: themeData.textTheme.titleSmall,
         contentPadding: const EdgeInsets.symmetric(horizontal: 5),
         onTap: () {
-          final HomeScreenController vpn = context.read<HomeScreenController>();
-          vpn.setSelectedItemIndex(index);
+          context.read<Repository>().setSelectedConfig(config);
         },
         leading: Container(
           width: 10,
@@ -259,11 +282,9 @@ class _CustomConfigListTile extends StatelessWidget {
             ),
           ),
         ),
-        title: Text(
-          vpnEntity.remark,
-        ),
+        title: Text(info.title),
         subtitle: Text(
-          '${vpnEntity.address} : ${vpnEntity.port}',
+          info.subtitle,
           style: themeData.textTheme.titleSmall,
         ),
         trailing: Row(
@@ -276,12 +297,26 @@ class _CustomConfigListTile extends StatelessWidget {
             IconButton(
               icon: const Icon(Icons.edit),
               onPressed: () {
-                // Navigator.push(context, MaterialPageRoute(builder: (context) => const Edit()));
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ChangeNotifierProvider<ConfigController>(
+                      create: (context) => ConfigController(
+                        repository: context.read<Repository>(),
+                        vpnConfig: config,
+                      ),
+                      child: const EditConfigScreen(),
+                    ),
+                  ),
+                );
               },
             ),
             IconButton(
               icon: const Icon(Icons.delete_forever),
-              onPressed: () {},
+              onPressed: () {
+                if (isSelected && context.read<HomeScreenController>().isConnected) return;
+                context.read<Repository>().delete(config);
+              },
             ),
           ],
         ),
@@ -298,15 +333,14 @@ class _CustomFloatingActionButton extends StatefulWidget {
   _CustomFloatingActionButtonState createState() => _CustomFloatingActionButtonState();
 }
 
-class _CustomFloatingActionButtonState extends State<_CustomFloatingActionButton> with SingleTickerProviderStateMixin {
+class _CustomFloatingActionButtonState extends State<_CustomFloatingActionButton> {
   String twoDigits(int n) => n.toString().padLeft(2, '0');
-  late AnimationController _animationController;
+  late final AnimationController _animationController = context.read<HomeScreenController>().animationController;
   late Animation<double> _animation;
 
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(vsync: this, duration: const Duration(seconds: 1));
     _animation = Tween<double>(begin: 0, end: 1).animate(_animationController);
   }
 
@@ -334,13 +368,19 @@ class _CustomFloatingActionButtonState extends State<_CustomFloatingActionButton
               ),
             ),
             onPressed: () {
-              final HomeScreenController vpn = context.read<HomeScreenController>();
-              vpn.toggle();
-              if (_animationController.status == AnimationStatus.completed) {
-                _animationController.reverse();
-              } else {
-                _animationController.forward();
-              }
+              context.read<HomeScreenController>().toggle().then((({bool success, String message}) value) {
+                if (!value.success) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      behavior: SnackBarBehavior.floating,
+                      // margin: EdgeInsets.only(bottom: 80),
+                      showCloseIcon: true,
+                      content: Text(value.message),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                }
+              });
             },
             label: Column(children: [
               Text(isConnected ? 'Disconnect' : 'Tap to Connect'),

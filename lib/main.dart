@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
-import 'package:rtptun_app/data/consts.dart';
+import 'package:rtptun_app/controllers/data/repo/repository.dart';
+import 'package:rtptun_app/controllers/data/src/hive_source.dart';
 import 'package:rtptun_app/models/rtp/rtp_model.dart';
 
-import 'controllers/home/home_screen_controller.dart';
 import 'controllers/theme/theme_controller.dart';
 import 'models/theme/theme_model.dart';
 import 'views/splash_screen/splash.dart';
+
+const vpnBoxName = 'VPNBox';
+const appThemeBoxName = 'AppThemeBox';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,8 +35,12 @@ void main() async {
             box: Hive.box(appThemeBoxName),
           ),
         ),
-        ChangeNotifierProvider<HomeScreenController>(
-          create: (BuildContext context) => HomeScreenController(),
+        ChangeNotifierProvider<Repository>(
+          create: (BuildContext context) => Repository(
+            HiveDataSource(
+              Hive.box(vpnBoxName),
+            ),
+          ),
         ),
       ],
       child: const MyApp(),

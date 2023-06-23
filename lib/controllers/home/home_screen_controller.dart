@@ -1,33 +1,51 @@
 import 'dart:async';
-
 import 'package:flutter/cupertino.dart';
-import 'package:rtptun_app/data/repo/repository.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:rtptun_app/controllers/data/repo/repository.dart';
+
+class MyTickerProvider extends TickerProvider {
+  @override
+  Ticker createTicker(TickerCallback onTick) => Ticker(onTick);
+}
 
 class HomeScreenController with ChangeNotifier {
   Timer? _timer;
   int seconds = 0;
+  Repository repository;
 
-  Future<void> toggle() async {
-    if (isConnected) {
-      await _disconnect();
+  HomeScreenController({required this.repository});
+
+  late final AnimationController _animationController = AnimationController(
+    duration: const Duration(seconds: 2),
+    vsync: MyTickerProvider(),
+  );
+
+  AnimationController get animationController => _animationController;
+
+  Future<({bool success, String message})> toggle() async {
+    if (repository.isSelectedConfigInBox) {
+      if (isConnected) {
+        _animationController.reverse();
+        await _disconnect();
+      } else {
+        _animationController.forward();
+        await _connect();
+      }
+      notifyListeners();
+
+      return (success: true, message: 'success');
     } else {
-      await _connect();
+      return (success: false, message: 'Please Select A Config Before Connect');
     }
-    notifyListeners();
-  }
-
-  Future<void> setSelectedItemIndex(int index) async {
-    await Repository.instance.setSelectedItemIndex(index);
-    notifyListeners();
   }
 
   Future<void> _connect() async {
-    await Repository.instance.connect();
+    await repository.connect();
     _startTimer();
   }
 
   Future<void> _disconnect() async {
-    await Repository.instance.disconnect();
+    await repository.disconnect();
     _stopTimer();
   }
 
@@ -43,7 +61,5 @@ class HomeScreenController with ChangeNotifier {
     seconds = 0;
   }
 
-  bool get isConnected => Repository.instance.isConnected;
-
-  int get selectedItemIndex => Repository.instance.selectedItemIndex;
+  bool get isConnected => repository.isConnected;
 }

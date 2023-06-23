@@ -9,7 +9,16 @@ class _Destination {
   final Widget page;
 }
 
-const List<_Destination> _allDestinations = <_Destination>[
-  _Destination(0, 'Home', Icons.home, Colors.teal, HomeScreen()),
-  _Destination(1, 'Log', Icons.event_note, Colors.cyan, Text('data')),
+List<_Destination> _allDestinations = <_Destination>[
+  _Destination(
+    0,
+    'Home',
+    Icons.home,
+    Colors.teal,
+    ChangeNotifierProvider<HomeScreenController>(
+      create: (BuildContext context) => HomeScreenController(repository: context.read<Repository>()),
+      child: const HomeScreen(),
+    ),
+  ),
+  const _Destination(1, 'Log', Icons.event_note, Colors.cyan, Text('data')),
 ];

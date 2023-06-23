@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:provider/provider.dart';
+import 'package:rtptun_app/controllers/home/home_screen_controller.dart';
+import 'package:rtptun_app/controllers/data/repo/repository.dart';
 
 import '../home_screen/home.dart';
 
