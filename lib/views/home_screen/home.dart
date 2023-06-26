@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:openvpn_flutter/openvpn_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:rtptun_app/controllers/config/config_controller.dart';
 import 'package:rtptun_app/controllers/home/home_screen_controller.dart';
@@ -32,6 +35,39 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  VpnStatus? status;
+  VPNStage? stage;
+  bool granted = false;
+
+  @override
+  void initState() {
+    context.read<HomeScreenController>().engine = OpenVPN(
+      onVpnStatusChanged: (data) {
+        setState(() {
+          status = data;
+        });
+      },
+      onVpnStageChanged: (data, raw) {
+        setState(() {
+          stage = data;
+        });
+      },
+    );
+
+    context.read<HomeScreenController>().engine.initialize(
+          groupIdentifier: "group.com.laskarmedia.vpn",
+          providerBundleIdentifier: "id.laskarmedia.openvpnFlutterExample.VPNExtension",
+          localizedDescription: "VPN by Nizwar",
+          lastStage: (stage) {
+            context.read<HomeScreenController>().addLog(stage.toString());
+          },
+          lastStatus: (status) {
+            context.read<HomeScreenController>().addLog(status.toJson().toString());
+          },
+        );
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     // Size size = MediaQuery.of(context).size;
