@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:rtptun_app/models/vpn/vpn_model.dart';
+import 'package:rtptun_app/models/tunnel/tunnel_model.dart';
 import '../src/source.dart';
 
 class Repository with ChangeNotifier implements DataSource {
@@ -19,42 +19,42 @@ class Repository with ChangeNotifier implements DataSource {
   }
 
   @override
-  Future<void> setSelectedConfig(VPN config) async {
-    await localDataSource.setSelectedConfig(config);
+  Future<void> setSelectedTunnel(Tunnel config) async {
+    await localDataSource.setSelectedTunnel(config);
     notifyListeners();
   }
 
   @override
-  VPN getConfigByIndex(int index) {
-    return localDataSource.getConfigByIndex(index);
+  Tunnel getTunnelByIndex(int index) {
+    return localDataSource.getTunnelByIndex(index);
   }
 
   @override
-  Future<VPN> createOrUpdate(VPN vpnConfig) async {
-    VPN config = await localDataSource.createOrUpdate(vpnConfig);
+  Future<Tunnel> createOrUpdate(Tunnel tunnel) async {
+    Tunnel config = await localDataSource.createOrUpdate(tunnel);
     notifyListeners();
     return config;
   }
 
   @override
-  Future<void> delete(VPN vpnConfig) async {
-    await localDataSource.delete(vpnConfig);
+  Future<void> delete(Tunnel? tunnel) async {
+    await localDataSource.delete(tunnel);
     notifyListeners();
   }
 
   @override
-  ({String title, String subtitle}) getConfigListTileInfo(int index) {
-    return localDataSource.getConfigListTileInfo(index);
+  ({String title, String subtitle}) getTunnelListTileInfo(int index) {
+    return localDataSource.getTunnelListTileInfo(index);
   }
 
   @override
-  VPN get selectedConfig => localDataSource.selectedConfig;
+  Tunnel get selectedTunnel => localDataSource.selectedTunnel;
 
   @override
   bool get isConnected => localDataSource.isConnected;
 
   @override
-  List<VPN> get configs => localDataSource.configs;
+  List<Tunnel> get configs => localDataSource.configs;
 
   @override
   bool get isSelectedConfigInBox => localDataSource.isSelectedConfigInBox;

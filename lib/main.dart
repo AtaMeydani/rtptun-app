@@ -2,16 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
-import 'package:rtptun_app/controllers/data/repo/repository.dart';
-import 'package:rtptun_app/controllers/data/src/hive_source.dart';
-import 'package:rtptun_app/models/rtp/rtp_model.dart';
 
+import 'controllers/data/repo/repository.dart';
+import 'controllers/data/src/hive_source.dart';
+import 'models/open_vpn/openvpn_model.dart';
+import 'models/rtp/rtp_model.dart';
+import 'models/tunnel/tunnel_model.dart';
+import 'models/vpn/vpn_model.dart';
 import 'controllers/theme/theme_controller.dart';
 import 'models/theme/theme_model.dart';
 import 'views/splash_screen/splash.dart';
 
-const vpnBoxName = 'VPNBox';
-const appThemeBoxName = 'AppThemeBox';
+const _vpnBoxName = 'VPNBox';
+const _appThemeBoxName = 'AppThemeBox';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,24 +24,27 @@ void main() async {
   ]);
 
   await Hive.initFlutter();
+  Hive.registerAdapter(TunnelAdapter());
   Hive.registerAdapter(RTPAdapter());
+  Hive.registerAdapter(VPNAdapter());
+  Hive.registerAdapter(OpenVPNAdapter());
   Hive.registerAdapter(AppThemeAdapter());
 
-  await Hive.openBox(vpnBoxName);
-  await Hive.openBox(appThemeBoxName);
+  await Hive.openBox(_vpnBoxName);
+  await Hive.openBox(_appThemeBoxName);
 
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider<ThemeController>(
           create: (context) => ThemeController(
-            box: Hive.box(appThemeBoxName),
+            box: Hive.box(_appThemeBoxName),
           ),
         ),
         ChangeNotifierProvider<Repository>(
           create: (BuildContext context) => Repository(
             HiveDataSource(
-              Hive.box(vpnBoxName),
+              Hive.box(_vpnBoxName),
             ),
           ),
         ),

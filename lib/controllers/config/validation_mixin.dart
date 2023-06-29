@@ -10,4 +10,12 @@ mixin ValidationMixin {
     }
     return null;
   }
+
+  String? notEmpty(String? value) {
+    if (value == null || value == '') {
+      return 'Please Enter A Value';
+    }
+
+    return null;
+  }
 }

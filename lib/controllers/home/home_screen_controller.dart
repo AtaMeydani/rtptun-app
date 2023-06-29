@@ -3,8 +3,9 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:openvpn_flutter/openvpn_flutter.dart';
-import 'package:rtptun_app/controllers/data/repo/repository.dart';
-import 'package:rtptun_app/controllers/log/log_screen_controller.dart';
+
+import '../data/repo/repository.dart';
+import '../log/log_screen_controller.dart';
 
 class MyTickerProvider extends TickerProvider {
   @override

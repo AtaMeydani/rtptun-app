@@ -23,13 +23,14 @@ class RTPAdapter extends TypeAdapter<RTP> {
       listenAddress: fields[3] as String?,
       listenPort: fields[4] as String?,
       secretKey: fields[5] as String?,
+      vpn: fields[6] as VPN?,
     );
   }
 
   @override
   void write(BinaryWriter writer, RTP obj) {
     writer
-      ..writeByte(6)
+      ..writeByte(7)
       ..writeByte(0)
       ..write(obj.remark)
       ..writeByte(1)
@@ -41,7 +42,9 @@ class RTPAdapter extends TypeAdapter<RTP> {
       ..writeByte(4)
       ..write(obj.listenPort)
       ..writeByte(5)
-      ..write(obj.secretKey);
+      ..write(obj.secretKey)
+      ..writeByte(6)
+      ..write(obj.vpn);
   }
 
   @override

@@ -1,5 +1,5 @@
 import 'package:hive_flutter/adapters.dart';
 part 'vpn_model.g.dart';
 
-@HiveType(typeId: 1)
+@HiveType(typeId: 3)
 class VPN extends HiveObject {}

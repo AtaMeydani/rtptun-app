@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:rtptun_app/controllers/data/repo/repository.dart';
+import 'package:rtptun_app/models/open_vpn/openvpn_model.dart';
 import 'package:rtptun_app/models/rtp/rtp_model.dart';
+import 'package:rtptun_app/models/tunnel/tunnel_model.dart';
+import 'package:rtptun_app/models/vpn/vpn_model.dart';
 import 'package:rtptun_app/views/edit_config_screen/custom_field.dart';
-import 'package:rtptun_app/controllers/config/validation_mixin.dart';
 
-import '../../models/vpn/vpn_model.dart';
+import '../data/repo/repository.dart';
+import 'validation_mixin.dart';
 
 class ConfigController with ChangeNotifier, ValidationMixin {
   final _formKey = GlobalKey<FormState>();
@@ -22,6 +24,7 @@ class ConfigController with ChangeNotifier, ValidationMixin {
     labelText: 'server address',
     hintText: 'address',
     controller: _serverAddressFieldController,
+    validator: notEmpty,
   );
 
   late final _serverPortFieldController = TextEditingController();
@@ -38,6 +41,7 @@ class ConfigController with ChangeNotifier, ValidationMixin {
     labelText: 'listen address',
     hintText: 'address',
     controller: _listenAddressFieldController,
+    validator: notEmpty,
   );
 
   late final _listenPortFieldController = TextEditingController();
@@ -54,26 +58,67 @@ class ConfigController with ChangeNotifier, ValidationMixin {
     labelText: 'encryption key',
     hintText: 'key',
     controller: _secretKeyFieldController,
+    validator: notEmpty,
   );
 
-  VPN vpnConfig;
+  late final _vpnConfigFieldController = TextEditingController();
+  late final _vpnConfigField = CustomField(
+    labelText: 'openvpn config',
+    hintText: 'config',
+    controller: _vpnConfigFieldController,
+    validator: notEmpty,
+  );
+
+  late final _vpnUsernameFieldController = TextEditingController();
+  late final _vpnUsernameField = CustomField(
+    labelText: 'openvpn username',
+    hintText: 'username',
+    controller: _vpnUsernameFieldController,
+  );
+
+  late final _vpnPasswordFieldController = TextEditingController();
+  late final _vpnPasswordField = CustomField(
+    labelText: 'openvpn password',
+    hintText: 'password',
+    controller: _vpnPasswordFieldController,
+  );
+
+  Tunnel? tunnel;
+  VPN? vpn;
   Repository repository;
-  ConfigController({required this.repository, required this.vpnConfig});
+  ConfigController({required this.repository, this.tunnel}) {
+    vpn = tunnel?.vpn;
+  }
+
+  void changeSelectedTunnel(Tunnel? tunnel) {
+    this.tunnel = tunnel;
+    notifyListeners();
+  }
+
+  void changeSelectedVPN(VPN? vpn) {
+    this.vpn = vpn;
+    notifyListeners();
+  }
 
   Future<bool> saveChanges() async {
     if (isValid) {
       saving = true;
       notifyListeners();
-      switch (vpnConfig.runtimeType) {
+      switch (tunnel.runtimeType) {
         case RTP:
-          RTP rtpConfig = vpnConfig as RTP;
+          RTP rtpConfig = tunnel as RTP;
           rtpConfig.remark = _remarkFieldController.text;
           rtpConfig.serverAddress = _serverAddressFieldController.text;
           rtpConfig.serverPort = _serverPortFieldController.text;
           rtpConfig.listenAddress = _listenAddressFieldController.text;
           rtpConfig.listenPort = _listenPortFieldController.text;
           rtpConfig.secretKey = _secretKeyFieldController.text;
+          rtpConfig.vpn = vpn;
           await repository.createOrUpdate(rtpConfig);
+        default:
+          saving = false;
+          notifyListeners();
+          return false;
       }
 
       saving = false;
@@ -85,11 +130,11 @@ class ConfigController with ChangeNotifier, ValidationMixin {
   }
 
   void delete() async {
-    await repository.delete(vpnConfig);
+    await repository.delete(tunnel);
   }
 
-  ({String title, String subtitle, VPN config}) getConfigListTileInfo(int index) {
-    final VPN config = repository.getConfigByIndex(index);
+  ({String title, String subtitle, Tunnel config}) getTunnelListTileInfo(int index) {
+    final Tunnel config = repository.getTunnelByIndex(index);
 
     if (config is RTP) {
       return (title: config.remark ?? '', subtitle: '${config.serverAddress} : ${config.serverPort}', config: config);
@@ -102,10 +147,10 @@ class ConfigController with ChangeNotifier, ValidationMixin {
 
   bool get isValid => _formKey.currentState!.validate();
 
-  List<Widget> get fields {
-    switch (vpnConfig.runtimeType) {
+  List<Widget> get tunnelFields {
+    switch (tunnel.runtimeType) {
       case RTP:
-        RTP rtp = vpnConfig as RTP;
+        RTP rtp = tunnel as RTP;
         _remarkFieldController.text = rtp.remark ?? 'NewRTPConfig';
         _serverAddressFieldController.text = rtp.serverAddress ?? '';
         _serverPortFieldController.text = rtp.serverPort ?? '';
@@ -125,6 +170,23 @@ class ConfigController with ChangeNotifier, ValidationMixin {
     }
   }
 
+  List<Widget> get vpnFields {
+    switch (vpn.runtimeType) {
+      case OpenVPN:
+        OpenVPN openvpn = vpn as OpenVPN;
+        _vpnConfigFieldController.text = openvpn.config ?? '';
+        _vpnUsernameFieldController.text = openvpn.username ?? '';
+        _vpnPasswordFieldController.text = openvpn.password ?? '';
+        return [
+          _vpnConfigField,
+          _vpnUsernameField,
+          _vpnPasswordField,
+        ];
+      default:
+        return [];
+    }
+  }
+
   @override
   void dispose() {
     _remarkFieldController.dispose();
@@ -132,6 +194,9 @@ class ConfigController with ChangeNotifier, ValidationMixin {
     _serverPortFieldController.dispose();
     _listenAddressFieldController.dispose();
     _listenPortFieldController.dispose();
+    _vpnConfigFieldController.dispose();
+    _vpnUsernameFieldController.dispose();
+    _vpnPasswordFieldController.dispose();
 
     super.dispose();
   }

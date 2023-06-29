@@ -1,9 +1,12 @@
 import 'package:hive_flutter/adapters.dart';
-import 'package:rtptun_app/models/vpn/vpn_model.dart';
+
+import '../tunnel/tunnel_model.dart';
+import '../vpn/vpn_model.dart';
+
 part 'rtp_model.g.dart';
 
 @HiveType(typeId: 2)
-class RTP extends HiveObject implements VPN {
+class RTP extends HiveObject implements Tunnel {
   @HiveField(0)
   String? remark;
 
@@ -22,6 +25,10 @@ class RTP extends HiveObject implements VPN {
   @HiveField(5)
   String? secretKey;
 
+  @override
+  @HiveField(6)
+  VPN? vpn;
+
   RTP({
     this.remark,
     this.serverAddress,
@@ -29,6 +36,7 @@ class RTP extends HiveObject implements VPN {
     this.listenAddress,
     this.listenPort,
     this.secretKey,
+    this.vpn,
   });
 
   @override

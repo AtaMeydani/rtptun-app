@@ -1,6 +1,7 @@
 import 'package:hive_flutter/hive_flutter.dart';
-import '../../../models/rtp/rtp_model.dart';
-import '../../../models/vpn/vpn_model.dart';
+import 'package:rtptun_app/models/rtp/rtp_model.dart';
+import 'package:rtptun_app/models/tunnel/tunnel_model.dart';
+
 import './source.dart';
 
 const _isConnectedKey = 'isConnected';
@@ -21,7 +22,7 @@ class HiveDataSource implements DataSource {
   }
 
   @override
-  Future<void> setSelectedConfig(VPN config) {
+  Future<void> setSelectedTunnel(Tunnel config) {
     return box.put(
       _selectedConfigKey,
       configs.indexed.firstWhere((element) => element.$2 == config).$1,
@@ -29,30 +30,30 @@ class HiveDataSource implements DataSource {
   }
 
   @override
-  VPN getConfigByIndex(int index) => box.getAt(index);
+  Tunnel getTunnelByIndex(int index) => box.getAt(index);
 
   @override
-  Future<VPN> createOrUpdate(VPN vpnConfig) async {
-    if (vpnConfig.isInBox) {
-      await vpnConfig.save();
+  Future<Tunnel> createOrUpdate(Tunnel tunnel) async {
+    if (tunnel.isInBox) {
+      await tunnel.save();
     } else {
-      await box.add(vpnConfig);
+      await box.add(tunnel);
     }
 
-    return vpnConfig;
+    return tunnel;
   }
 
   @override
-  Future<void> delete(VPN vpnConfig) async {
-    if (vpnConfig == selectedConfig) {
+  Future<void> delete(Tunnel? tunnel) async {
+    if (tunnel == selectedTunnel) {
       box.put(_selectedConfigKey, -1);
     }
-    await vpnConfig.delete();
+    await tunnel?.delete();
   }
 
   @override
-  ({String title, String subtitle}) getConfigListTileInfo(int index) {
-    final VPN config = getConfigByIndex(index);
+  ({String title, String subtitle}) getTunnelListTileInfo(int index) {
+    final Tunnel config = getTunnelByIndex(index);
 
     if (config is RTP) {
       return (title: config.remark ?? '', subtitle: '${config.serverAddress} : ${config.serverPort}');
@@ -62,10 +63,10 @@ class HiveDataSource implements DataSource {
   }
 
   @override
-  VPN get selectedConfig {
+  Tunnel get selectedTunnel {
     int selectedConfigIndex = box.get(_selectedConfigKey, defaultValue: -1);
     if (selectedConfigIndex < 0 || selectedConfigIndex >= configs.length) {
-      return VPN();
+      return Tunnel();
     }
     return configs[selectedConfigIndex];
   }
@@ -74,8 +75,8 @@ class HiveDataSource implements DataSource {
   bool get isConnected => box.get('isConnected', defaultValue: false);
 
   @override
-  List<VPN> get configs => box.values.whereType<VPN>().toList();
+  List<Tunnel> get configs => box.values.whereType<Tunnel>().toList();
 
   @override
-  bool get isSelectedConfigInBox => selectedConfig.isInBox;
+  bool get isSelectedConfigInBox => selectedTunnel.isInBox;
 }

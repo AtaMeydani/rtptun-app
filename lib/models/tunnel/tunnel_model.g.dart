@@ -1,22 +1,22 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'vpn_model.dart';
+part of 'tunnel_model.dart';
 
 // **************************************************************************
 // TypeAdapterGenerator
 // **************************************************************************
 
-class VPNAdapter extends TypeAdapter<VPN> {
+class TunnelAdapter extends TypeAdapter<Tunnel> {
   @override
-  final int typeId = 3;
+  final int typeId = 1;
 
   @override
-  VPN read(BinaryReader reader) {
-    return VPN();
+  Tunnel read(BinaryReader reader) {
+    return Tunnel();
   }
 
   @override
-  void write(BinaryWriter writer, VPN obj) {
+  void write(BinaryWriter writer, Tunnel obj) {
     writer.writeByte(0);
   }
 
@@ -26,7 +26,7 @@ class VPNAdapter extends TypeAdapter<VPN> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is VPNAdapter &&
+      other is TunnelAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

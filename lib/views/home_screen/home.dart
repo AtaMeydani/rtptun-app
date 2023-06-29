@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:openvpn_flutter/openvpn_flutter.dart';
@@ -7,14 +5,14 @@ import 'package:provider/provider.dart';
 import 'package:rtptun_app/controllers/config/config_controller.dart';
 import 'package:rtptun_app/controllers/home/home_screen_controller.dart';
 import 'package:rtptun_app/controllers/data/repo/repository.dart';
-import 'package:rtptun_app/models/rtp/rtp_model.dart';
+import 'package:rtptun_app/controllers/theme/theme_controller.dart';
 import 'package:rtptun_app/models/theme/theme_model.dart';
-import 'package:rtptun_app/models/vpn/vpn_model.dart';
-import 'package:rtptun_app/views/edit_config_screen/edit_config.dart';
+import 'package:rtptun_app/models/tunnel/tunnel_model.dart';
+
 import 'dart:math' as math;
 
-import '../../controllers/theme/theme_controller.dart';
 import '../components/logo.dart';
+import '../edit_config_screen/edit_config.dart';
 
 enum MorePopupMenuItem {
   serviceRestart,
@@ -181,10 +179,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     context,
                     MaterialPageRoute(
                       builder: (context) => ChangeNotifierProvider<ConfigController>(
-                        create: (context) => ConfigController(
-                          repository: context.read<Repository>(),
-                          vpnConfig: RTP(),
-                        ),
+                        create: (context) => ConfigController(repository: context.read<Repository>()),
                         child: const EditConfigScreen(),
                       ),
                     ),
@@ -218,17 +213,17 @@ class _HomeScreenState extends State<HomeScreen> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: const _CustomFloatingActionButton(),
       body: SafeArea(
-        child: Selector<Repository, List<VPN>>(
+        child: Selector<Repository, List<Tunnel>>(
           selector: (_, Repository repository) => repository.configs,
-          builder: (BuildContext context, List<VPN> configs, Widget? child) {
+          builder: (BuildContext context, List<Tunnel> configs, Widget? child) {
             return ListView.builder(
               physics: const BouncingScrollPhysics(),
               itemCount: configs.length,
               itemBuilder: (context, index) {
                 return Selector<Repository, ({bool isSelected, ({String title, String subtitle}) info})>(
                     selector: (_, Repository repository) => (
-                          isSelected: repository.selectedConfig == configs[index],
-                          info: repository.getConfigListTileInfo(index)
+                          isSelected: repository.selectedTunnel == configs[index],
+                          info: repository.getTunnelListTileInfo(index)
                         ),
                     builder: (BuildContext context, ({bool isSelected, ({String title, String subtitle}) info}) record,
                         Widget? child) {
@@ -280,7 +275,7 @@ class _CustomDrawerListTile extends StatelessWidget {
 class _CustomConfigListTile extends StatelessWidget {
   final bool isSelected;
   final ({String title, String subtitle}) info;
-  final VPN config;
+  final Tunnel config;
   static const radius = 20.0;
 
   const _CustomConfigListTile({
@@ -306,7 +301,7 @@ class _CustomConfigListTile extends StatelessWidget {
         titleTextStyle: themeData.textTheme.titleSmall,
         contentPadding: const EdgeInsets.symmetric(horizontal: 5),
         onTap: () {
-          context.read<Repository>().setSelectedConfig(config);
+          context.read<Repository>().setSelectedTunnel(config);
         },
         leading: Container(
           width: 10,
@@ -339,7 +334,7 @@ class _CustomConfigListTile extends StatelessWidget {
                     builder: (context) => ChangeNotifierProvider<ConfigController>(
                       create: (context) => ConfigController(
                         repository: context.read<Repository>(),
-                        vpnConfig: config,
+                        tunnel: config,
                       ),
                       child: const EditConfigScreen(),
                     ),

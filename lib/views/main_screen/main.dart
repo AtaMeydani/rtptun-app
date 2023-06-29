@@ -4,9 +4,9 @@ import 'package:provider/provider.dart';
 import 'package:rtptun_app/controllers/home/home_screen_controller.dart';
 import 'package:rtptun_app/controllers/data/repo/repository.dart';
 import 'package:rtptun_app/controllers/log/log_screen_controller.dart';
-import 'package:rtptun_app/views/log_screen/log.dart';
 
 import '../home_screen/home.dart';
+import '../log_screen/log.dart';
 
 part 'destination_view.dart';
 part 'destinations.dart';
