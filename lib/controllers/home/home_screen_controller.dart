@@ -38,6 +38,10 @@ class HomeScreenController with ChangeNotifier {
     logScreenController.addLog(log);
   }
 
+  void loadTimerState() {
+    seconds = _currentTime - repository.timerState;
+  }
+
   void updateByteIn() async {
     Map<String, dynamic> status = (await engine.status()).toJson();
     logScreenController.updateByteIn(status.containsKey('byte_in') ? status['byte_in'] : '0');
@@ -81,17 +85,19 @@ class HomeScreenController with ChangeNotifier {
   Future<void> _connect() async {
     engine.connect(config, "USA", username: defaultVpnUsername, password: defaultVpnPassword, certIsRequired: true);
     await repository.connect();
-    _startTimer();
+    await repository.saveTimerState(_currentTime);
+    startTimer();
   }
 
   Future<void> _disconnect() async {
     engine.disconnect();
 
     await repository.disconnect();
+    await repository.deleteTimerState();
     _stopTimer();
   }
 
-  void _startTimer() {
+  void startTimer() {
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       updateByteIn();
       updateByteOut();
@@ -105,9 +111,19 @@ class HomeScreenController with ChangeNotifier {
     seconds = 0;
   }
 
+  int get _currentTime => DateTime.now().millisecondsSinceEpoch ~/ 1000;
+
   bool get isConnected => repository.isConnected;
 
   AnimationController get animationController => _animationController;
+
+  @override
+  void dispose() {
+    if (!isConnected) {
+      repository.deleteTimerState();
+    }
+    super.dispose();
+  }
 }
 
 const String defaultVpnUsername = "";

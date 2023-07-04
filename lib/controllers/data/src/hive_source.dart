@@ -6,6 +6,7 @@ import './source.dart';
 
 const _isConnectedKey = 'isConnected';
 const _selectedConfigKey = 'selectedConfig';
+const _timerStateKey = 'timerState';
 
 class HiveDataSource implements DataSource {
   final Box box;
@@ -63,6 +64,16 @@ class HiveDataSource implements DataSource {
   }
 
   @override
+  Future<void> saveTimerState(int seconds) {
+    return box.put(_timerStateKey, seconds);
+  }
+
+  @override
+  Future<void> deleteTimerState() {
+    return box.delete(_timerStateKey);
+  }
+
+  @override
   Tunnel get selectedTunnel {
     int selectedConfigIndex = box.get(_selectedConfigKey, defaultValue: -1);
     if (selectedConfigIndex < 0 || selectedConfigIndex >= configs.length) {
@@ -72,11 +83,14 @@ class HiveDataSource implements DataSource {
   }
 
   @override
-  bool get isConnected => box.get('isConnected', defaultValue: false);
+  bool get isConnected => box.get(_isConnectedKey, defaultValue: false);
 
   @override
   List<Tunnel> get configs => box.values.whereType<Tunnel>().toList();
 
   @override
   bool get isSelectedConfigInBox => selectedTunnel.isInBox;
+
+  @override
+  int get timerState => box.get(_timerStateKey, defaultValue: DateTime.now().millisecondsSinceEpoch ~/ 1000);
 }

@@ -373,6 +373,10 @@ class _CustomFloatingActionButtonState extends State<_CustomFloatingActionButton
   void initState() {
     super.initState();
     _animation = Tween<double>(begin: 0, end: 1).animate(_animationController);
+    context.read<HomeScreenController>().loadTimerState();
+    if (context.read<HomeScreenController>().isConnected) {
+      context.read<HomeScreenController>().startTimer();
+    }
   }
 
   @override
