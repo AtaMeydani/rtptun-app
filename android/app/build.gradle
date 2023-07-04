@@ -38,8 +38,15 @@ android {
         jvmTarget = '1.8'
     }
 
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging = true
+        }
+    }
+
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
+        main.jniLibs.srcDirs += 'src/main/jniLibs'
     }
 
     defaultConfig {
