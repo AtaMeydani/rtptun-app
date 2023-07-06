@@ -24,12 +24,15 @@ class _CustomFieldState extends State<CustomField> {
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      keyboardType: widget.textInputType,
       controller: widget.controller,
       decoration: InputDecoration(
         labelText: widget.labelText,
         hintText: widget.hintText,
       ),
       validator: widget.validator,
+      minLines: 1,
+      maxLines: 20,
     );
   }
 }

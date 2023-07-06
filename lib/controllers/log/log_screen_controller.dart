@@ -1,11 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:get_ip_address/get_ip_address.dart';
 
 class LogScreenController with ChangeNotifier {
   final List<String> logs = [];
   String byteIn = '0';
   String byteOut = '0';
 
-  void addLog(String log) {
+  LogScreenController() {
+    FlutterBackgroundService().on('update').listen((event) {
+      // addLog(event.toString());
+      checkIP();
+    });
+  }
+
+  void addLog(String log) async {
     logs.add(log);
     notifyListeners();
   }
@@ -29,6 +38,20 @@ class LogScreenController with ChangeNotifier {
     updateByteIn('0');
     updateByteOut('0');
     clear();
+  }
+
+  void checkIP() async {
+    try {
+      /// Initialize Ip Address
+      var ipAddress = IpAddress(type: RequestType.json);
+
+      /// Get the IpAddress based on requestType.
+      dynamic data = await ipAddress.getIpAddress();
+      addLog(data.toString());
+    } on IpAddressException catch (exception) {
+      /// Handle the exception.
+      addLog(exception.message);
+    }
   }
 
   get len => logs.length;

@@ -6,17 +6,17 @@ part of 'openvpn_model.dart';
 // TypeAdapterGenerator
 // **************************************************************************
 
-class OpenVPNAdapter extends TypeAdapter<OpenVPN> {
+class OpenVPNModelAdapter extends TypeAdapter<OpenVPNModel> {
   @override
   final int typeId = 4;
 
   @override
-  OpenVPN read(BinaryReader reader) {
+  OpenVPNModel read(BinaryReader reader) {
     final numOfFields = reader.readByte();
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return OpenVPN(
+    return OpenVPNModel(
       config: fields[0] as String?,
       username: fields[1] as String?,
       password: fields[2] as String?,
@@ -24,7 +24,7 @@ class OpenVPNAdapter extends TypeAdapter<OpenVPN> {
   }
 
   @override
-  void write(BinaryWriter writer, OpenVPN obj) {
+  void write(BinaryWriter writer, OpenVPNModel obj) {
     writer
       ..writeByte(3)
       ..writeByte(0)
@@ -41,7 +41,7 @@ class OpenVPNAdapter extends TypeAdapter<OpenVPN> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is OpenVPNAdapter &&
+      other is OpenVPNModelAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

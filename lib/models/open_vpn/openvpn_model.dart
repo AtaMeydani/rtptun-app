@@ -4,7 +4,7 @@ import '../vpn/vpn_model.dart';
 part 'openvpn_model.g.dart';
 
 @HiveType(typeId: 4)
-class OpenVPN extends HiveObject implements VPN {
+class OpenVPNModel extends HiveObject implements VPN {
   @HiveField(0)
   String? config;
 
@@ -14,7 +14,7 @@ class OpenVPN extends HiveObject implements VPN {
   @HiveField(2)
   String? password;
 
-  OpenVPN({
+  OpenVPNModel({
     this.config,
     this.username,
     this.password,

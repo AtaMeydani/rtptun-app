@@ -3,9 +3,14 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:openvpn_flutter/openvpn_flutter.dart';
+import 'package:rtptun_app/models/open_vpn/openvpn_model.dart';
+import 'package:rtptun_app/models/tunnel/tunnel_model.dart';
+import 'package:rtptun_app/models/vpn/vpn_model.dart';
 
 import '../data/repo/repository.dart';
 import '../log/log_screen_controller.dart';
+
+import 'package:flutter_background_service/flutter_background_service.dart';
 
 class MyTickerProvider extends TickerProvider {
   @override
@@ -33,6 +38,22 @@ class HomeScreenController with ChangeNotifier {
     required this.repository,
     required this.logScreenController,
   });
+
+  void startService() {
+    FlutterBackgroundService().startService();
+  }
+
+  void stopService() {
+    FlutterBackgroundService().invoke("stopService");
+  }
+
+  void setAsBackground() {
+    FlutterBackgroundService().invoke("setAsBackground");
+  }
+
+  void setAsForeground() {
+    FlutterBackgroundService().invoke("setAsForeground");
+  }
 
   void addLog(String log) {
     logScreenController.addLog(log);
@@ -83,9 +104,17 @@ class HomeScreenController with ChangeNotifier {
   }
 
   Future<void> _connect() async {
-    engine.connect(config, "USA", username: defaultVpnUsername, password: defaultVpnPassword, certIsRequired: true);
+    Tunnel tunnel = repository.selectedTunnel;
+    VPN? vpn = tunnel.vpn;
+    if (vpn != null) {
+      if (vpn is OpenVPNModel && vpn.config != null) {
+        engine.connect(vpn.config!, "USA", username: vpn.username, password: vpn.password, certIsRequired: true);
+      }
+    }
     await repository.connect();
     await repository.saveTimerState(_currentTime);
+    startService();
+    setAsBackground();
     startTimer();
   }
 
@@ -94,6 +123,7 @@ class HomeScreenController with ChangeNotifier {
 
     await repository.disconnect();
     await repository.deleteTimerState();
+    stopService();
     _stopTimer();
   }
 
@@ -119,13 +149,13 @@ class HomeScreenController with ChangeNotifier {
 
   @override
   void dispose() {
-    if (!isConnected) {
+    if (isConnected) {
+      setAsForeground();
+    } else {
+      _timer?.cancel();
       repository.deleteTimerState();
     }
+
     super.dispose();
   }
 }
-
-const String defaultVpnUsername = "";
-const String defaultVpnPassword = "";
-String config = '''''';

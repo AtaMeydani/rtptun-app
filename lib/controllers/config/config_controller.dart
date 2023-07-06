@@ -63,6 +63,7 @@ class ConfigController with ChangeNotifier, ValidationMixin {
 
   late final _vpnConfigFieldController = TextEditingController();
   late final _vpnConfigField = CustomField(
+    textInputType: TextInputType.multiline,
     labelText: 'openvpn config',
     hintText: 'config',
     controller: _vpnConfigFieldController,
@@ -104,29 +105,49 @@ class ConfigController with ChangeNotifier, ValidationMixin {
     if (isValid) {
       saving = true;
       notifyListeners();
-      switch (tunnel.runtimeType) {
-        case RTP:
-          RTP rtpConfig = tunnel as RTP;
-          rtpConfig.remark = _remarkFieldController.text;
-          rtpConfig.serverAddress = _serverAddressFieldController.text;
-          rtpConfig.serverPort = _serverPortFieldController.text;
-          rtpConfig.listenAddress = _listenAddressFieldController.text;
-          rtpConfig.listenPort = _listenPortFieldController.text;
-          rtpConfig.secretKey = _secretKeyFieldController.text;
-          rtpConfig.vpn = vpn;
-          await repository.createOrUpdate(rtpConfig);
-        default:
-          saving = false;
-          notifyListeners();
-          return false;
+
+      if (tunnel != null) {
+        _saveTunnelObject(tunnel!);
+        _saveVPNObject(vpn);
+        tunnel!.vpn = vpn;
+        await repository.createOrUpdate(tunnel!);
+        saving = false;
+        notifyListeners();
+        return true;
+      } else {
+        saving = false;
+        notifyListeners();
+        return false;
       }
-
-      saving = false;
-      notifyListeners();
-
-      return true;
     }
     return false;
+  }
+
+  _saveTunnelObject(Tunnel tunnel) {
+    switch (tunnel.runtimeType) {
+      case RTP:
+        RTP rtpConfig = tunnel as RTP;
+        rtpConfig.remark = _remarkFieldController.text;
+        rtpConfig.serverAddress = _serverAddressFieldController.text;
+        rtpConfig.serverPort = _serverPortFieldController.text;
+        rtpConfig.listenAddress = _listenAddressFieldController.text;
+        rtpConfig.listenPort = _listenPortFieldController.text;
+        rtpConfig.secretKey = _secretKeyFieldController.text;
+        break;
+      default:
+    }
+  }
+
+  _saveVPNObject(VPN? vpn) {
+    switch (vpn.runtimeType) {
+      case OpenVPNModel:
+        OpenVPNModel openvpn = vpn as OpenVPNModel;
+        openvpn.config = _vpnConfigFieldController.text;
+        openvpn.username = _vpnUsernameFieldController.text;
+        openvpn.password = _vpnPasswordFieldController.text;
+        break;
+      default:
+    }
   }
 
   void delete() async {
@@ -172,8 +193,8 @@ class ConfigController with ChangeNotifier, ValidationMixin {
 
   List<Widget> get vpnFields {
     switch (vpn.runtimeType) {
-      case OpenVPN:
-        OpenVPN openvpn = vpn as OpenVPN;
+      case OpenVPNModel:
+        OpenVPNModel openvpn = vpn as OpenVPNModel;
         _vpnConfigFieldController.text = openvpn.config ?? '';
         _vpnUsernameFieldController.text = openvpn.username ?? '';
         _vpnPasswordFieldController.text = openvpn.password ?? '';
@@ -183,6 +204,7 @@ class ConfigController with ChangeNotifier, ValidationMixin {
           _vpnPasswordField,
         ];
       default:
+        // vpn is null
         return [];
     }
   }

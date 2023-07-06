@@ -66,7 +66,7 @@ class _EditConfigScreenState extends State<EditConfigScreen> {
             onTap: () {
               _showDialog(context: context, items: {
                 'OpenVPN': () {
-                  return context.read<ConfigController>().changeSelectedVPN(OpenVPN());
+                  return context.read<ConfigController>().changeSelectedVPN(OpenVPNModel());
                 },
                 'No VPN': () {
                   return context.read<ConfigController>().changeSelectedVPN(null);
