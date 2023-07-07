@@ -1,6 +1,6 @@
 {
-    "name": "rtptun_app",
-    "short_name": "rtptun_app",
+    "name": "my_flutter_app",
+    "short_name": "my_flutter_app",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

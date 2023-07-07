@@ -63,6 +63,9 @@ class _HomeScreenState extends State<HomeScreen> {
             context.read<HomeScreenController>().addLog(status.toJson().toString());
           },
         );
+
+    context.read<HomeScreenController>().setAsBackground();
+
     super.initState();
   }
 

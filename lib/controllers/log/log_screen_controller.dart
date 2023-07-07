@@ -12,6 +12,14 @@ class LogScreenController with ChangeNotifier {
       // addLog(event.toString());
       checkIP();
     });
+
+    FlutterBackgroundService().on('tunnel_out').listen((event) {
+      addLog(event!['stdout']);
+    });
+
+    FlutterBackgroundService().on('tunnel_error').listen((event) {
+      addLog(event!['stderror']);
+    });
   }
 
   void addLog(String log) async {

@@ -17,10 +17,10 @@ class RTP extends HiveObject implements Tunnel {
   String? serverPort;
 
   @HiveField(3)
-  String? listenAddress;
+  String? localAddress;
 
   @HiveField(4)
-  String? listenPort;
+  String? localPort;
 
   @HiveField(5)
   String? secretKey;
@@ -33,8 +33,8 @@ class RTP extends HiveObject implements Tunnel {
     this.remark,
     this.serverAddress,
     this.serverPort,
-    this.listenAddress,
-    this.listenPort,
+    this.localAddress,
+    this.localPort,
     this.secretKey,
     this.vpn,
   });
@@ -46,16 +46,16 @@ class RTP extends HiveObject implements Tunnel {
           runtimeType == other.runtimeType &&
           serverAddress == other.serverAddress &&
           serverPort == other.serverPort &&
-          listenAddress == other.listenAddress &&
-          listenPort == other.listenPort &&
+          localAddress == other.localAddress &&
+          localPort == other.localPort &&
           secretKey == other.secretKey;
 
   @override
   int get hashCode => Object.hashAll([
         serverAddress,
         serverPort,
-        listenAddress,
-        listenPort,
+        localAddress,
+        localPort,
         secretKey,
       ]);
 }

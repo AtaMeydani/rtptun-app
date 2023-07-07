@@ -20,8 +20,8 @@ class RTPAdapter extends TypeAdapter<RTP> {
       remark: fields[0] as String?,
       serverAddress: fields[1] as String?,
       serverPort: fields[2] as String?,
-      listenAddress: fields[3] as String?,
-      listenPort: fields[4] as String?,
+      localAddress: fields[3] as String?,
+      localPort: fields[4] as String?,
       secretKey: fields[5] as String?,
       vpn: fields[6] as VPN?,
     );
@@ -38,9 +38,9 @@ class RTPAdapter extends TypeAdapter<RTP> {
       ..writeByte(2)
       ..write(obj.serverPort)
       ..writeByte(3)
-      ..write(obj.listenAddress)
+      ..write(obj.localAddress)
       ..writeByte(4)
-      ..write(obj.listenPort)
+      ..write(obj.localPort)
       ..writeByte(5)
       ..write(obj.secretKey)
       ..writeByte(6)
@@ -52,8 +52,5 @@ class RTPAdapter extends TypeAdapter<RTP> {
 
   @override
   bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is RTPAdapter &&
-          runtimeType == other.runtimeType &&
-          typeId == other.typeId;
+      identical(this, other) || other is RTPAdapter && runtimeType == other.runtimeType && typeId == other.typeId;
 }

@@ -36,19 +36,19 @@ class ConfigController with ChangeNotifier, ValidationMixin {
     validator: validatePortNumber,
   );
 
-  late final _listenAddressFieldController = TextEditingController();
-  late final _listenAddressField = CustomField(
-    labelText: 'listen address',
+  late final _localAddressFieldController = TextEditingController();
+  late final _localAddressField = CustomField(
+    labelText: 'local address',
     hintText: 'address',
-    controller: _listenAddressFieldController,
+    controller: _localAddressFieldController,
     validator: notEmpty,
   );
 
-  late final _listenPortFieldController = TextEditingController();
-  late final _listenPortField = CustomField(
-    labelText: 'listen port',
+  late final _localPortFieldController = TextEditingController();
+  late final _localPortField = CustomField(
+    labelText: 'local port',
     hintText: 'port',
-    controller: _listenPortFieldController,
+    controller: _localPortFieldController,
     textInputType: TextInputType.number,
     validator: validatePortNumber,
   );
@@ -130,8 +130,8 @@ class ConfigController with ChangeNotifier, ValidationMixin {
         rtpConfig.remark = _remarkFieldController.text;
         rtpConfig.serverAddress = _serverAddressFieldController.text;
         rtpConfig.serverPort = _serverPortFieldController.text;
-        rtpConfig.listenAddress = _listenAddressFieldController.text;
-        rtpConfig.listenPort = _listenPortFieldController.text;
+        rtpConfig.localAddress = _localAddressFieldController.text;
+        rtpConfig.localPort = _localPortFieldController.text;
         rtpConfig.secretKey = _secretKeyFieldController.text;
         break;
       default:
@@ -175,15 +175,15 @@ class ConfigController with ChangeNotifier, ValidationMixin {
         _remarkFieldController.text = rtp.remark ?? 'NewRTPConfig';
         _serverAddressFieldController.text = rtp.serverAddress ?? '';
         _serverPortFieldController.text = rtp.serverPort ?? '';
-        _listenAddressFieldController.text = rtp.listenAddress ?? '0.0.0.0';
-        _listenPortFieldController.text = rtp.listenPort ?? '';
+        _localAddressFieldController.text = rtp.localAddress ?? '127.0.0.1';
+        _localPortFieldController.text = rtp.localPort ?? '';
         _secretKeyFieldController.text = rtp.secretKey ?? '';
         return [
           _remarkField,
           _serverAddressField,
           _serverPortField,
-          _listenAddressField,
-          _listenPortField,
+          _localAddressField,
+          _localPortField,
           _secretKeyField,
         ];
       default:
@@ -214,8 +214,8 @@ class ConfigController with ChangeNotifier, ValidationMixin {
     _remarkFieldController.dispose();
     _serverAddressFieldController.dispose();
     _serverPortFieldController.dispose();
-    _listenAddressFieldController.dispose();
-    _listenPortFieldController.dispose();
+    _localAddressFieldController.dispose();
+    _localPortFieldController.dispose();
     _vpnConfigFieldController.dispose();
     _vpnUsernameFieldController.dispose();
     _vpnPasswordFieldController.dispose();
