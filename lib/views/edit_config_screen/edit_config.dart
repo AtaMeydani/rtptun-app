@@ -84,23 +84,38 @@ class _EditConfigScreenState extends State<EditConfigScreen> {
             },
             selector: (_, ConfigController controller) => controller.tunnelFields,
           ),
-          ListTile(
-            title: const Text('Select VPN'),
-            subtitle: Selector<ConfigController, String>(
-              builder: (context, value, child) {
-                return Text(value);
-              },
-              selector: (_, ConfigController controller) => controller.vpn?.runtimeType.toString() ?? 'not selected',
-            ),
-            onTap: () {
-              _showDialog(context: context, items: {
-                'OpenVPN': () {
-                  return context.read<ConfigController>().changeSelectedVPN(OpenVPNModel());
-                },
-                'No VPN': () {
-                  return context.read<ConfigController>().changeSelectedVPN(null);
-                }
-              });
+          Selector<ConfigController, bool>(
+            selector: (_, ConfigController configController) => configController.tunnel != null,
+            builder: (context, tunnelIsSelected, child) {
+              return Stack(
+                children: [
+                  ListTile(
+                    title: const Text('Select VPN'),
+                    subtitle: Selector<ConfigController, String>(
+                      builder: (context, value, child) {
+                        return Text(value);
+                      },
+                      selector: (_, ConfigController controller) =>
+                          controller.vpn?.runtimeType.toString() ?? 'not selected',
+                    ),
+                    onTap: () {
+                      _showDialog(context: context, items: {
+                        'OpenVPN': () {
+                          return context.read<ConfigController>().changeSelectedVPN(OpenVPNModel());
+                        },
+                        'No VPN': () {
+                          return context.read<ConfigController>().changeSelectedVPN(null);
+                        }
+                      });
+                    },
+                  ),
+                  tunnelIsSelected
+                      ? const SizedBox.shrink()
+                      : const Positioned.fill(
+                          child: AbsorbPointer(),
+                        ),
+                ],
+              );
             },
           ),
           Selector<ConfigController, List<Widget>>(
