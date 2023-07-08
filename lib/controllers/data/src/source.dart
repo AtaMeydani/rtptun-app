@@ -11,8 +11,5 @@ abstract class DataSource {
   Future<Tunnel> createOrUpdate(Tunnel tunnel);
   Future<void> delete(Tunnel? tunnel);
   ({String title, String subtitle}) getTunnelListTileInfo(int index);
-  Future<void> saveTimerState(int seconds);
-  Future<void> deleteTimerState();
-  int get timerState;
   bool get isSelectedConfigInBox;
 }

@@ -27,8 +27,6 @@ class MyTickerProvider extends TickerProvider {
 }
 
 class HomeScreenController with ChangeNotifier {
-  Timer? _timer;
-  int seconds = 0;
   Repository repository;
 
   late final AnimationController _animationController = AnimationController(
@@ -131,14 +129,6 @@ class HomeScreenController with ChangeNotifier {
       });
     }
 
-    service.on('stopService').listen((event) {
-      service.stopSelf();
-    });
-
-    service.on('stopTunnel').listen((event) {
-      process?.kill();
-    });
-
     SharedPreferences preferences = await SharedPreferences.getInstance();
     String? path = preferences.getString('TunnelPath');
     List<String>? parameters = preferences.getStringList('TunnelParams');
@@ -150,7 +140,6 @@ class HomeScreenController with ChangeNotifier {
     );
 
     process.stdout.listen((event) {
-      print(String.fromCharCodes(event));
       service.invoke(
         'tunnel_out',
         {
@@ -160,19 +149,18 @@ class HomeScreenController with ChangeNotifier {
     });
 
     process.stderr.listen((event) {
-      print(String.fromCharCodes(event));
       service.invoke(
         'tunnel_error',
         {
-          "stderror": String.fromCharCodes(event),
+          "stderr": String.fromCharCodes(event),
         },
       );
     });
 
-    print(process.stdin);
-    print(parameters.toString());
+    int seconds = 0;
+
     // bring to foreground
-    Timer.periodic(const Duration(seconds: 1), (timer) async {
+    Timer timer = Timer.periodic(const Duration(seconds: 1), (timer) async {
       if (service is AndroidServiceInstance) {
         if (await service.isForegroundService()) {
           /// OPTIONAL for use custom notification
@@ -199,25 +187,27 @@ class HomeScreenController with ChangeNotifier {
         }
       }
 
-      /// you can see this log in logcat
-      print('FLUTTER BACKGROUND SERVICE: ${DateTime.now()}');
-
-      // test using external plugin
-
-      String? device;
-      if (Platform.isAndroid) {
-        device = 'Android';
-      }
-
-      if (Platform.isIOS) {
-        device = 'IOS';
-      }
-
       service.invoke(
-        'update',
+        'timer',
         {
-          "current_date": DateTime.now().toIso8601String(),
-          "device": device,
+          "time": seconds,
+        },
+      );
+
+      seconds++;
+    });
+
+    service.on('stopService').listen((event) {
+      service.stopSelf();
+    });
+
+    service.on('stopTunnel').listen((event) {
+      timer.cancel();
+      process?.kill();
+      service.invoke(
+        'timer',
+        {
+          "time": 0,
         },
       );
     });
@@ -247,16 +237,12 @@ class HomeScreenController with ChangeNotifier {
     logScreenController.addLog(log);
   }
 
-  void loadTimerState() {
-    seconds = _currentTime - repository.timerState;
-  }
-
-  void _updateByteIn() async {
+  void updateByteIn() async {
     Map<String, dynamic> status = (await engine.status()).toJson();
     logScreenController.updateByteIn(status.containsKey('byte_in') ? status['byte_in'] : '0');
   }
 
-  void _updateByteOut() async {
+  void updateByteOut() async {
     Map<String, dynamic> status = (await engine.status()).toJson();
     logScreenController.updateByteOut(status.containsKey('byte_out') ? status['byte_out'] : '0');
   }
@@ -297,9 +283,7 @@ class HomeScreenController with ChangeNotifier {
     startService();
     await _startVPN(repository.selectedTunnel.vpn);
     await repository.connect();
-    await repository.saveTimerState(_currentTime);
     setAsBackground();
-    startTimer();
   }
 
   Future<void> _saveTunnelToSharedPreferences(Tunnel tunnel) async {
@@ -344,25 +328,7 @@ class HomeScreenController with ChangeNotifier {
     stopTunnelService();
     stopService();
     await repository.disconnect();
-    await repository.deleteTimerState();
-    _stopTimer();
   }
-
-  void startTimer() {
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      _updateByteIn();
-      _updateByteOut();
-      seconds++;
-      notifyListeners();
-    });
-  }
-
-  void _stopTimer() {
-    _timer?.cancel();
-    seconds = 0;
-  }
-
-  int get _currentTime => DateTime.now().millisecondsSinceEpoch ~/ 1000;
 
   bool get isConnected => repository.isConnected;
 
@@ -372,9 +338,6 @@ class HomeScreenController with ChangeNotifier {
   void dispose() {
     if (isConnected) {
       setAsForeground();
-    } else {
-      _timer?.cancel();
-      repository.deleteTimerState();
     }
 
     super.dispose();

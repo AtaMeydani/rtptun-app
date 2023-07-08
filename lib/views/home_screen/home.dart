@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:openvpn_flutter/openvpn_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:rtptun_app/controllers/config/config_controller.dart';
@@ -382,15 +383,13 @@ class _CustomFloatingActionButtonState extends State<_CustomFloatingActionButton
   String twoDigits(int n) => n.toString().padLeft(2, '0');
   late final AnimationController _animationController = context.read<HomeScreenController>().animationController;
   late Animation<double> _animation;
+  late HomeScreenController _homeScreenController;
 
   @override
   void initState() {
     super.initState();
     _animation = Tween<double>(begin: 0, end: 1).animate(_animationController);
-    context.read<HomeScreenController>().loadTimerState();
-    if (context.read<HomeScreenController>().isConnected) {
-      context.read<HomeScreenController>().startTimer();
-    }
+    _homeScreenController = context.read<HomeScreenController>();
   }
 
   @override
@@ -433,16 +432,16 @@ class _CustomFloatingActionButtonState extends State<_CustomFloatingActionButton
             },
             label: Column(children: [
               Text(isConnected ? 'Disconnect' : 'Tap to Connect'),
-              Selector<HomeScreenController, int>(
-                selector: (_, HomeScreenController vpn) => vpn.seconds,
-                builder: (BuildContext context, vpn, Widget? child) {
-                  Duration duration = Duration(seconds: vpn);
-                  final minutes = twoDigits(duration.inMinutes.remainder(60));
-                  final seconds = twoDigits(duration.inSeconds.remainder(60));
-                  final hours = twoDigits(duration.inHours.remainder(60));
-                  return Text(
-                    '$hours : $minutes : $seconds',
-                  );
+              StreamBuilder(
+                stream: FlutterBackgroundService().on('timer'),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return const SizedBox.shrink();
+                  }
+                  _homeScreenController.updateByteIn();
+                  _homeScreenController.updateByteOut();
+                  String time = Duration(seconds: snapshot.data!['time']).toString().split('.')[0];
+                  return Text(time);
                 },
               ),
             ]),

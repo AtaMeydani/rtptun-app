@@ -49,16 +49,6 @@ class Repository with ChangeNotifier implements DataSource {
   }
 
   @override
-  Future<void> saveTimerState(int seconds) async {
-    return localDataSource.saveTimerState(seconds);
-  }
-
-  @override
-  Future<void> deleteTimerState() {
-    return localDataSource.deleteTimerState();
-  }
-
-  @override
   Tunnel get selectedTunnel => localDataSource.selectedTunnel;
 
   @override
@@ -69,7 +59,4 @@ class Repository with ChangeNotifier implements DataSource {
 
   @override
   bool get isSelectedConfigInBox => localDataSource.isSelectedConfigInBox;
-
-  @override
-  int get timerState => localDataSource.timerState;
 }
