@@ -19,9 +19,10 @@ class Repository with ChangeNotifier implements DataSource {
   }
 
   @override
-  Future<void> setSelectedTunnel(Tunnel config) async {
-    await localDataSource.setSelectedTunnel(config);
+  Future<({bool success, String message})> setSelectedTunnel(Tunnel config) async {
+    var res = await localDataSource.setSelectedTunnel(config);
     notifyListeners();
+    return res;
   }
 
   @override

@@ -303,8 +303,19 @@ class _CustomConfigListTile extends StatelessWidget {
         minLeadingWidth: 10,
         titleTextStyle: themeData.textTheme.titleSmall,
         contentPadding: const EdgeInsets.symmetric(horizontal: 5),
-        onTap: () {
-          context.read<Repository>().setSelectedTunnel(config);
+        onTap: () async {
+          ({String message, bool success}) res = await context.read<Repository>().setSelectedTunnel(config);
+          if (!res.success && context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                behavior: SnackBarBehavior.floating,
+                // margin: EdgeInsets.only(bottom: 80),
+                showCloseIcon: true,
+                content: Text(res.message),
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          }
         },
         leading: Container(
           width: 10,

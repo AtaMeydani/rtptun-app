@@ -5,7 +5,7 @@ abstract class DataSource {
   Future<void> disconnect();
   bool get isConnected;
   Tunnel get selectedTunnel;
-  Future<void> setSelectedTunnel(Tunnel tunnel);
+  Future<({bool success, String message})> setSelectedTunnel(Tunnel tunnel);
   List<Tunnel> get configs;
   Tunnel getTunnelByIndex(int index);
   Future<Tunnel> createOrUpdate(Tunnel tunnel);

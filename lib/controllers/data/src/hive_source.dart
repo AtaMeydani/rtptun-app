@@ -23,11 +23,16 @@ class HiveDataSource implements DataSource {
   }
 
   @override
-  Future<void> setSelectedTunnel(Tunnel config) {
-    return box.put(
-      _selectedConfigKey,
-      configs.indexed.firstWhere((element) => element.$2 == config).$1,
-    );
+  Future<({bool success, String message})> setSelectedTunnel(Tunnel config) {
+    if (isConnected) {
+      return Future.value((success: false, message: 'Disconnect before changing the config'));
+    } else {
+      box.put(
+        _selectedConfigKey,
+        configs.indexed.firstWhere((element) => element.$2 == config).$1,
+      );
+      return Future.value((success: true, message: 'success'));
+    }
   }
 
   @override
