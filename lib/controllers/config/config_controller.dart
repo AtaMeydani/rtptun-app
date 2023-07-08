@@ -12,14 +12,14 @@ class ConfigController with ChangeNotifier, ValidationMixin {
   final _formKey = GlobalKey<FormState>();
   bool saving = false;
 
-  late final _remarkFieldController = TextEditingController();
+  final _remarkFieldController = TextEditingController();
   late final _remarkField = CustomField(
     labelText: 'remark',
     hintText: 'remark',
     controller: _remarkFieldController,
   );
 
-  late final _serverAddressFieldController = TextEditingController();
+  final _serverAddressFieldController = TextEditingController();
   late final _serverAddressField = CustomField(
     labelText: 'server address',
     hintText: 'address',
@@ -27,7 +27,7 @@ class ConfigController with ChangeNotifier, ValidationMixin {
     validator: notEmpty,
   );
 
-  late final _serverPortFieldController = TextEditingController();
+  final _serverPortFieldController = TextEditingController();
   late final _serverPortField = CustomField(
     labelText: 'server port',
     hintText: 'port',
@@ -36,7 +36,7 @@ class ConfigController with ChangeNotifier, ValidationMixin {
     validator: validatePortNumber,
   );
 
-  late final _localAddressFieldController = TextEditingController();
+  final _localAddressFieldController = TextEditingController();
   late final _localAddressField = CustomField(
     labelText: 'local address',
     hintText: 'address',
@@ -44,7 +44,7 @@ class ConfigController with ChangeNotifier, ValidationMixin {
     validator: notEmpty,
   );
 
-  late final _localPortFieldController = TextEditingController();
+  final _localPortFieldController = TextEditingController();
   late final _localPortField = CustomField(
     labelText: 'local port',
     hintText: 'port',
@@ -53,7 +53,7 @@ class ConfigController with ChangeNotifier, ValidationMixin {
     validator: validatePortNumber,
   );
 
-  late final _secretKeyFieldController = TextEditingController();
+  final _secretKeyFieldController = TextEditingController();
   late final _secretKeyField = CustomField(
     labelText: 'encryption key',
     hintText: 'key',
@@ -61,7 +61,7 @@ class ConfigController with ChangeNotifier, ValidationMixin {
     validator: notEmpty,
   );
 
-  late final _vpnConfigFieldController = TextEditingController();
+  final _vpnConfigFieldController = TextEditingController();
   late final _vpnConfigField = CustomField(
     textInputType: TextInputType.multiline,
     labelText: 'openvpn config',
@@ -70,14 +70,14 @@ class ConfigController with ChangeNotifier, ValidationMixin {
     validator: notEmpty,
   );
 
-  late final _vpnUsernameFieldController = TextEditingController();
+  final _vpnUsernameFieldController = TextEditingController();
   late final _vpnUsernameField = CustomField(
     labelText: 'openvpn username',
     hintText: 'username',
     controller: _vpnUsernameFieldController,
   );
 
-  late final _vpnPasswordFieldController = TextEditingController();
+  final _vpnPasswordFieldController = TextEditingController();
   late final _vpnPasswordField = CustomField(
     labelText: 'openvpn password',
     hintText: 'password',
@@ -93,11 +93,13 @@ class ConfigController with ChangeNotifier, ValidationMixin {
 
   void changeSelectedTunnel(Tunnel? tunnel) {
     this.tunnel = tunnel;
+    initTunnelTextFields();
     notifyListeners();
   }
 
   void changeSelectedVPN(VPN? vpn) {
     this.vpn = vpn;
+    initVPNTextFields();
     notifyListeners();
   }
 
@@ -171,13 +173,6 @@ class ConfigController with ChangeNotifier, ValidationMixin {
   List<Widget> get tunnelFields {
     switch (tunnel.runtimeType) {
       case RTP:
-        RTP rtp = tunnel as RTP;
-        _remarkFieldController.text = rtp.remark ?? 'NewRTPConfig';
-        _serverAddressFieldController.text = rtp.serverAddress ?? '';
-        _serverPortFieldController.text = rtp.serverPort ?? '';
-        _localAddressFieldController.text = rtp.localAddress ?? '127.0.0.1';
-        _localPortFieldController.text = rtp.localPort ?? '';
-        _secretKeyFieldController.text = rtp.secretKey ?? '';
         return [
           _remarkField,
           _serverAddressField,
@@ -191,13 +186,23 @@ class ConfigController with ChangeNotifier, ValidationMixin {
     }
   }
 
+  void initTunnelTextFields() {
+    switch (tunnel.runtimeType) {
+      case RTP:
+        RTP rtp = tunnel as RTP;
+        _remarkFieldController.text = rtp.remark ?? 'NewRTPConfig';
+        _serverAddressFieldController.text = rtp.serverAddress ?? '';
+        _serverPortFieldController.text = rtp.serverPort ?? '';
+        _localAddressFieldController.text = rtp.localAddress ?? '127.0.0.1';
+        _localPortFieldController.text = rtp.localPort ?? '';
+        _secretKeyFieldController.text = rtp.secretKey ?? '';
+      default:
+    }
+  }
+
   List<Widget> get vpnFields {
     switch (vpn.runtimeType) {
       case OpenVPNModel:
-        OpenVPNModel openvpn = vpn as OpenVPNModel;
-        _vpnConfigFieldController.text = openvpn.config ?? '';
-        _vpnUsernameFieldController.text = openvpn.username ?? '';
-        _vpnPasswordFieldController.text = openvpn.password ?? '';
         return [
           _vpnConfigField,
           _vpnUsernameField,
@@ -206,6 +211,17 @@ class ConfigController with ChangeNotifier, ValidationMixin {
       default:
         // vpn is null
         return [];
+    }
+  }
+
+  void initVPNTextFields() {
+    switch (vpn.runtimeType) {
+      case OpenVPNModel:
+        OpenVPNModel openvpn = vpn as OpenVPNModel;
+        _vpnConfigFieldController.text = openvpn.config ?? '';
+        _vpnUsernameFieldController.text = openvpn.username ?? '';
+        _vpnPasswordFieldController.text = openvpn.password ?? '';
+      default:
     }
   }
 

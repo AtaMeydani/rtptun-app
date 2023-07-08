@@ -14,6 +14,13 @@ class EditConfigScreen extends StatefulWidget {
 
 class _EditConfigScreenState extends State<EditConfigScreen> {
   @override
+  void initState() {
+    context.read<ConfigController>().initTunnelTextFields();
+    context.read<ConfigController>().initVPNTextFields();
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -27,12 +34,17 @@ class _EditConfigScreenState extends State<EditConfigScreen> {
             },
           ),
           IconButton(
-            icon: context.watch<ConfigController>().saving
-                ? LoadingAnimationWidget.horizontalRotatingDots(
-                    color: Theme.of(context).colorScheme.onPrimary,
-                    size: 24,
-                  )
-                : const Icon(Icons.check),
+            icon: Selector<ConfigController, bool>(
+              builder: (context, saving, child) {
+                return saving
+                    ? LoadingAnimationWidget.horizontalRotatingDots(
+                        color: Theme.of(context).colorScheme.onPrimary,
+                        size: 24,
+                      )
+                    : const Icon(Icons.check);
+              },
+              selector: (_, ConfigController configController) => configController.saving,
+            ),
             onPressed: () async {
               if (await context.read<ConfigController>().saveChanges()) {
                 if (!mounted) return;
@@ -47,7 +59,12 @@ class _EditConfigScreenState extends State<EditConfigScreen> {
         child: ListView(padding: const EdgeInsets.all(20), children: [
           ListTile(
             title: const Text('Select Tunnel'),
-            subtitle: Text(context.watch<ConfigController>().tunnel?.runtimeType.toString() ?? 'not selected'),
+            subtitle: Selector<ConfigController, String>(
+              builder: (context, value, child) {
+                return Text(value);
+              },
+              selector: (_, ConfigController controller) => controller.tunnel?.runtimeType.toString() ?? 'not selected',
+            ),
             onTap: () {
               _showDialog(context: context, items: {
                 'RTP': () {
@@ -59,10 +76,22 @@ class _EditConfigScreenState extends State<EditConfigScreen> {
               });
             },
           ),
-          ...context.watch<ConfigController>().tunnelFields,
+          Selector<ConfigController, List<Widget>>(
+            builder: (context, value, child) {
+              return Column(
+                children: value,
+              );
+            },
+            selector: (_, ConfigController controller) => controller.tunnelFields,
+          ),
           ListTile(
             title: const Text('Select VPN'),
-            subtitle: Text(context.watch<ConfigController>().vpn?.runtimeType.toString() ?? 'not selected'),
+            subtitle: Selector<ConfigController, String>(
+              builder: (context, value, child) {
+                return Text(value);
+              },
+              selector: (_, ConfigController controller) => controller.vpn?.runtimeType.toString() ?? 'not selected',
+            ),
             onTap: () {
               _showDialog(context: context, items: {
                 'OpenVPN': () {
@@ -74,7 +103,14 @@ class _EditConfigScreenState extends State<EditConfigScreen> {
               });
             },
           ),
-          ...context.watch<ConfigController>().vpnFields,
+          Selector<ConfigController, List<Widget>>(
+            builder: (context, value, child) {
+              return Column(
+                children: value,
+              );
+            },
+            selector: (_, ConfigController controller) => controller.vpnFields,
+          ),
         ]),
       ),
     );
