@@ -9,6 +9,7 @@ import 'package:rtptun_app/controllers/data/repo/repository.dart';
 import 'package:rtptun_app/controllers/theme/theme_controller.dart';
 import 'package:rtptun_app/models/theme/theme_model.dart';
 import 'package:rtptun_app/models/tunnel/tunnel_model.dart';
+import 'package:share_plus/share_plus.dart';
 
 import 'dart:math' as math;
 
@@ -122,14 +123,17 @@ class _HomeScreenState extends State<HomeScreen> {
             const _CustomDrawerListTile(
               title: 'Change Language',
               leadingIcon: Icons.translate,
+              onTap: null,
             ),
-            const _CustomDrawerListTile(
+            _CustomDrawerListTile(
               title: 'Share App',
               leadingIcon: Icons.share,
+              onTap: () => Share.share('check out my app:\nhttps://github.com/AtaMeydani/rtptun-app'),
             ),
             const _CustomDrawerListTile(
               title: 'About',
               leadingIcon: Icons.info,
+              onTap: null,
             ),
           ],
         ),
@@ -249,17 +253,17 @@ class _HomeScreenState extends State<HomeScreen> {
 class _CustomDrawerListTile extends StatelessWidget {
   final String title;
   final IconData leadingIcon;
+  final void Function()? onTap;
   const _CustomDrawerListTile({
     required this.title,
     required this.leadingIcon,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      onTap: () {
-        // Navigator.push(context, MaterialPageRoute(builder: (context) => const ChangeLanguage()));
-      },
+      onTap: onTap,
       leading: Icon(
         leadingIcon,
         size: 18,
