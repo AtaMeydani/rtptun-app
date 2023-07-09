@@ -1,4 +1,4 @@
-package com.example.rtptun_app;
+package com.miratameydani.rtptun;
 
 import io.flutter.embedding.android.FlutterActivity;
 import id.laskarmedia.openvpn_flutter.OpenVPNFlutterPlugin;
@@ -13,7 +13,7 @@ import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
 
 public class MainActivity extends FlutterActivity {
-    private static final String CHANNEL = "com.example/nativeLibraryDir";
+    private static final String CHANNEL = "com.miratameydani.rtptun/nativeLibraryDir";
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {

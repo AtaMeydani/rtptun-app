@@ -1,7 +1,7 @@
 import 'package:flutter/services.dart';
 
 class PlatformInvoke {
-  static const _platform = MethodChannel('com.example/nativeLibraryDir');
+  static const _platform = MethodChannel('com.miratameydani.rtptun/nativeLibraryDir');
 
   static Future<String?> getNativeLibraryDir() async {
     try {
