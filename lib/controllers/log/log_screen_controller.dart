@@ -4,6 +4,7 @@ import 'package:get_ip_address/get_ip_address.dart';
 
 class LogScreenController with ChangeNotifier {
   final List<String> logs = [];
+  final scrollController = ScrollController();
   String byteIn = '0';
   String byteOut = '0';
 
@@ -20,6 +21,7 @@ class LogScreenController with ChangeNotifier {
   void addLog(String log) async {
     logs.add(log);
     notifyListeners();
+    jump();
   }
 
   void clear() {
@@ -41,6 +43,12 @@ class LogScreenController with ChangeNotifier {
     updateByteIn('0');
     updateByteOut('0');
     clear();
+  }
+
+  void jump() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      scrollController.jumpTo(scrollController.position.maxScrollExtent);
+    });
   }
 
   void checkIP() async {

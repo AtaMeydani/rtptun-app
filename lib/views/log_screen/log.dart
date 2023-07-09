@@ -15,14 +15,9 @@ class LogScreen extends StatefulWidget {
 }
 
 class _LogScreenState extends State<LogScreen> {
-  final _scrollController = ScrollController();
-
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
-    });
   }
 
   @override
@@ -59,18 +54,21 @@ class _LogScreenState extends State<LogScreen> {
                 ],
               );
             },
-          )
+          ),
+          IconButton(
+            onPressed: () => context.read<LogScreenController>().checkIP(),
+            icon: const Icon(Icons.refresh_outlined),
+          ),
         ],
       ),
       body: Selector<LogScreenController, int>(
         selector: (_, LogScreenController controller) => controller.len,
         builder: (context, value, child) {
           return ListView.builder(
-            controller: _scrollController,
+            controller: context.read<LogScreenController>().scrollController,
             itemCount: value,
             itemBuilder: (context, index) {
               return _ListItem(
-                key: ValueKey(context.read<LogScreenController>().logs[index]),
                 index: index,
               );
             },
@@ -87,8 +85,7 @@ class _ListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final myData = Provider.of<LogScreenController>(context);
-    final item = myData.logs[index];
+    final item = context.read<LogScreenController>().logs[index];
     return ListTile(
       title: Text(
         item,
