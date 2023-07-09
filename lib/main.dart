@@ -11,6 +11,7 @@ import 'models/tunnel/tunnel_model.dart';
 import 'models/vpn/vpn_model.dart';
 import 'controllers/theme/theme_controller.dart';
 import 'models/theme/theme_model.dart';
+import 'views/main_screen/main.dart';
 import 'views/splash_screen/splash.dart';
 
 const _vpnBoxName = 'VPNBox';
@@ -62,7 +63,7 @@ class MyApp extends StatelessWidget {
       builder: (BuildContext context, themeManager, Widget? child) {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
-          home: const SplashScreen(),
+          home: context.read<Repository>().isConnected ? const MainScreen() : const SplashScreen(),
           theme: themeManager.getTheme(),
         );
       },

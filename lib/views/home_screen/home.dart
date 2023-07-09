@@ -35,22 +35,15 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  VpnStatus? status;
-  VPNStage? stage;
-  bool granted = false;
-
+  VPNStage? lastStage;
   @override
   void initState() {
     context.read<HomeScreenController>().engine = OpenVPN(
-      onVpnStatusChanged: (data) {
-        setState(() {
-          status = data;
-        });
-      },
-      onVpnStageChanged: (data, raw) {
-        setState(() {
-          stage = data;
-        });
+      onVpnStageChanged: (stage, raw) {
+        if (lastStage != stage) {
+          context.read<HomeScreenController>().addLog(stage.toString());
+          lastStage = stage;
+        }
       },
     );
 
@@ -59,14 +52,15 @@ class _HomeScreenState extends State<HomeScreen> {
           providerBundleIdentifier: "id.laskarmedia.openvpnFlutterExample.VPNExtension",
           localizedDescription: "VPN by Nizwar",
           lastStage: (stage) {
-            context.read<HomeScreenController>().addLog(stage.toString());
-          },
-          lastStatus: (status) {
-            context.read<HomeScreenController>().addLog(status.toJson().toString());
+            if (lastStage != stage) {
+              context.read<HomeScreenController>().addLog(stage.toString());
+              lastStage = stage;
+            }
           },
         );
 
     context.read<HomeScreenController>().setAsBackground();
+    context.read<HomeScreenController>().initializeService();
 
     super.initState();
   }

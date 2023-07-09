@@ -46,7 +46,7 @@ class HomeScreenController with ChangeNotifier {
     required this.logScreenController,
   });
 
-  Future<void> _initializeService() async {
+  Future<void> initializeService() async {
     final service = FlutterBackgroundService();
 
     /// OPTIONAL, using custom notification channel id
@@ -213,8 +213,8 @@ class HomeScreenController with ChangeNotifier {
     });
   }
 
-  void startService() {
-    FlutterBackgroundService().startService();
+  Future<bool> startService() async {
+    return await FlutterBackgroundService().startService();
   }
 
   void stopService() {
@@ -259,13 +259,11 @@ class HomeScreenController with ChangeNotifier {
           _animationController.reverse();
 
           await _disconnect();
-          addLog('disconnected');
           logScreenController.reset();
         } else {
           addLog('connecting...');
           _animationController.forward();
           await _connect();
-          addLog('connected');
         }
         notifyListeners();
         return (success: true, message: 'success');
@@ -278,15 +276,16 @@ class HomeScreenController with ChangeNotifier {
   }
 
   Future<void> _connect() async {
-    await _saveTunnelToSharedPreferences(repository.selectedTunnel);
-    await _initializeService();
-    startService();
-    await _startVPN(repository.selectedTunnel.vpn);
-    await repository.connect();
+    Tunnel selectedTunnel = repository.selectedTunnel;
+    String tunnelName = await _saveTunnelToSharedPreferences(selectedTunnel);
+    await initializeService();
+    await startService();
     setAsBackground();
+    await _startVPN(repository.selectedTunnel.vpn, tunnelName);
+    await repository.connect();
   }
 
-  Future<void> _saveTunnelToSharedPreferences(Tunnel tunnel) async {
+  Future<String> _saveTunnelToSharedPreferences(Tunnel tunnel) async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     switch (tunnel.runtimeType) {
       case RTP:
@@ -308,16 +307,23 @@ class HomeScreenController with ChangeNotifier {
           rtp.secretKey!,
         ]);
 
-        break;
+        return Future.value(rtp.remark);
       default:
+        return Future.value('Unknown Tunnel');
     }
   }
 
-  Future<void> _startVPN(VPN? vpn) async {
+  Future<void> _startVPN(VPN? vpn, String tunnelName) async {
     switch (vpn.runtimeType) {
       case OpenVPNModel:
         vpn as OpenVPNModel;
-        engine.connect(vpn.config!, "USA", username: vpn.username, password: vpn.password, certIsRequired: true);
+        engine.connect(
+          vpn.config!,
+          tunnelName,
+          username: vpn.username,
+          password: vpn.password,
+          certIsRequired: true,
+        );
         break;
       default:
     }
