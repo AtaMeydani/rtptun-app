@@ -40,6 +40,40 @@ class RTP extends HiveObject implements Tunnel {
   });
 
   @override
+  Map<String, dynamic> toJson() {
+    return {
+      "RTP": {
+        "remark": remark,
+        "serverAddress": serverAddress,
+        "serverPort": serverPort,
+        "localAddress": localAddress,
+        "localPort": localPort,
+        "secretKey": secretKey,
+      },
+    };
+  }
+
+  @override
+  void fromJson(Map<String, dynamic> config) {
+    remark = config["remark"];
+    serverAddress = config["serverAddress"];
+    serverPort = config["serverPort"];
+    localAddress = config["localAddress"];
+    localPort = config["localPort"];
+    secretKey = config["secretKey"];
+  }
+
+  @override
+  Map<String, dynamic> getJsonConfiguration() {
+    return {
+      "Tunnel": {...toJson()},
+      "VPN": {
+        ...vpn?.toJson() ?? {},
+      },
+    };
+  }
+
+  @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is RTP &&

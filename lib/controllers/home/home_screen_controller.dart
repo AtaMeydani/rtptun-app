@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:openvpn_flutter/openvpn_flutter.dart';
 import 'package:rtptun_app/models/open_vpn/openvpn_model.dart';
@@ -273,6 +275,21 @@ class HomeScreenController with ChangeNotifier {
     } else {
       return (success: false, message: 'Please Select A Config Before Connect');
     }
+  }
+
+  Future<({bool success, String message})> importFromClipboard() async {
+    ClipboardData? data = await Clipboard.getData(Clipboard.kTextPlain);
+    if (data != null) {
+      Map<String, dynamic> configJson;
+      try {
+        configJson = json.decode(data.text ?? '{}');
+      } on FormatException {
+        return (success: false, message: "Invalid Format");
+      }
+
+      return await repository.importConfig(configJson);
+    }
+    return (success: false, message: "No Data");
   }
 
   Future<void> _connect() async {

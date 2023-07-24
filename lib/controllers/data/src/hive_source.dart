@@ -2,6 +2,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:rtptun_app/models/rtp/rtp_model.dart';
 import 'package:rtptun_app/models/tunnel/tunnel_model.dart';
 
+import '../../../models/open_vpn/openvpn_model.dart';
+import '../../../models/vpn/vpn_model.dart';
 import './source.dart';
 
 const _isConnectedKey = 'isConnected';
@@ -65,6 +67,37 @@ class HiveDataSource implements DataSource {
     }
 
     return (title: 'unknown config', subtitle: 'unknown config');
+  }
+
+  @override
+  Future<({String message, bool success})> importConfig(Map<String, dynamic> configJson) async {
+    Tunnel? tunnel;
+    VPN? vpn;
+    if (configJson.containsKey('Tunnel')) {
+      Map<String, dynamic> tunnelConfig = configJson['Tunnel'];
+
+      if (tunnelConfig.containsKey('RTP')) {
+        tunnel = RTP();
+        tunnel.fromJson(tunnelConfig['RTP']);
+      }
+    }
+
+    if (tunnel != null && configJson.containsKey('VPN')) {
+      Map<String, dynamic> vpnConfig = configJson['VPN'];
+
+      if (vpnConfig.containsKey("OpenVPN")) {
+        vpn = OpenVPNModel();
+        vpn.fromJson(vpnConfig["OpenVPN"]);
+      }
+    }
+
+    if (tunnel == null) {
+      return (success: false, message: "There Is No Tunnel");
+    } else {
+      tunnel.vpn = vpn;
+      await createOrUpdate(tunnel);
+      return (success: true, message: "Config Successfully Added");
+    }
   }
 
   @override

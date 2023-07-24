@@ -49,6 +49,13 @@ class Repository with ChangeNotifier implements DataSource {
   }
 
   @override
+  Future<({String message, bool success})> importConfig(Map<String, dynamic> configJson) async {
+    ({String message, bool success}) res = await localDataSource.importConfig(configJson);
+    notifyListeners();
+    return res;
+  }
+
+  @override
   Tunnel get selectedTunnel => localDataSource.selectedTunnel;
 
   @override

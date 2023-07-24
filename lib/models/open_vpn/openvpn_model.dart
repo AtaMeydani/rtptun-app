@@ -19,4 +19,22 @@ class OpenVPNModel extends HiveObject implements VPN {
     this.username,
     this.password,
   });
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      "OpenVPN": {
+        'config': config,
+        'username': username,
+        'password': password,
+      }
+    };
+  }
+
+  @override
+  void fromJson(Map<String, dynamic> vpnConfig) {
+    config = vpnConfig["config"];
+    username = vpnConfig["username"];
+    password = vpnConfig["password"];
+  }
 }

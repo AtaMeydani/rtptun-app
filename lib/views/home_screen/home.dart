@@ -1,8 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:openvpn_flutter/openvpn_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:rtptun_app/controllers/config/config_controller.dart';
 import 'package:rtptun_app/controllers/home/home_screen_controller.dart';
 import 'package:rtptun_app/controllers/data/repo/repository.dart';
@@ -10,11 +13,11 @@ import 'package:rtptun_app/controllers/theme/theme_controller.dart';
 import 'package:rtptun_app/models/theme/theme_model.dart';
 import 'package:rtptun_app/models/tunnel/tunnel_model.dart';
 import 'package:share_plus/share_plus.dart';
-
 import 'dart:math' as math;
 
 import '../components/logo.dart';
 import '../edit_config_screen/edit_config.dart';
+import '../qr_scanner_screen/qr_view.dart';
 
 enum MorePopupMenuItem {
   serviceRestart,
@@ -173,7 +176,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Text(value.name),
               );
             }).toList(),
-            onSelected: (AddPopupMenuItem value) {
+            onSelected: (AddPopupMenuItem value) async {
               // Do something when a menu item is selected.
               switch (value) {
                 case AddPopupMenuItem.typeManually:
@@ -188,10 +191,23 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                   break;
                 case AddPopupMenuItem.importConfigFromQRcode:
-                  // TODO: Handle this case.
+                  Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => const QRViewExample(),
+                  ));
                   break;
                 case AddPopupMenuItem.importConfigFromClipboard:
-                  // TODO: Handle this case.
+                  ({bool success, String message}) res =
+                      await context.read<HomeScreenController>().importFromClipboard();
+                  if (!res.success && mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        behavior: SnackBarBehavior.floating,
+                        showCloseIcon: true,
+                        content: Text(res.message),
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  }
                   break;
               }
             },
@@ -336,7 +352,9 @@ class _CustomConfigListTile extends StatelessWidget {
           children: [
             IconButton(
               icon: const Icon(Icons.share),
-              onPressed: () {},
+              onPressed: () {
+                _shareDialog(context);
+              },
             ),
             IconButton(
               icon: const Icon(Icons.edit),
@@ -365,6 +383,89 @@ class _CustomConfigListTile extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  void _shareDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Center(child: Text('Share Config')),
+          content: const Text('Select a method to share:'),
+          actionsAlignment: MainAxisAlignment.center,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _grcodeDialog(context);
+              },
+              child: const Text('QRcode'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                await Clipboard.setData(ClipboardData(text: json.encode(config.getJsonConfiguration())));
+                if (!context.mounted) {
+                  return;
+                }
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                  content: Text('Copied to clipboard'),
+                ));
+              },
+              child: const Text('Export to clipboard'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _grcodeDialog(BuildContext context) {
+    Size size = MediaQuery.of(context).size;
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Center(child: Text('QR Code')),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          contentPadding: const EdgeInsets.all(10),
+          actionsPadding: EdgeInsets.zero,
+          insetPadding: const EdgeInsets.all(20),
+          content: SizedBox(
+            height: size.width,
+            width: size.width,
+            child: QrImageView(
+              // ignore: deprecated_member_use
+              foregroundColor: Theme.of(context).colorScheme.primary,
+              data: json.encode(config.toJson()),
+
+              version: QrVersions.auto,
+              size: 320,
+              constrainErrorBounds: true,
+              backgroundColor: Theme.of(context).colorScheme.surface,
+              dataModuleStyle: const QrDataModuleStyle(
+                dataModuleShape: QrDataModuleShape.circle,
+              ),
+              errorStateBuilder: (cxt, err) {
+                return const Center(
+                  child: Text(
+                    'Uh oh! Something went wrong...',
+                    textAlign: TextAlign.center,
+                  ),
+                );
+              },
+            ),
+          ),
+          actionsAlignment: MainAxisAlignment.center,
+          scrollable: true,
+        );
+      },
     );
   }
 }

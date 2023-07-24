@@ -52,5 +52,8 @@ class RTPAdapter extends TypeAdapter<RTP> {
 
   @override
   bool operator ==(Object other) =>
-      identical(this, other) || other is RTPAdapter && runtimeType == other.runtimeType && typeId == other.typeId;
+      identical(this, other) ||
+      other is RTPAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
 }
