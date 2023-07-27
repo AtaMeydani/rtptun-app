@@ -75,9 +75,11 @@ class HomeScreenController with ChangeNotifier {
   }
 
   void updateBytesInOut() async {
-    Map<String, dynamic> vpnStatus = (await engine.status()).toJson();
-    logScreenController.updateByteIn(vpnStatus.containsKey('byte_in') ? vpnStatus['byte_in'] : '0');
-    logScreenController.updateByteOut(vpnStatus.containsKey('byte_out') ? vpnStatus['byte_out'] : '0');
+    if (await engine.isConnected()) {
+      Map<String, dynamic> vpnStatus = (await engine.status()).toJson();
+      logScreenController.updateByteIn(vpnStatus.containsKey('byte_in') ? vpnStatus['byte_in'] : '0');
+      logScreenController.updateByteOut(vpnStatus.containsKey('byte_out') ? vpnStatus['byte_out'] : '0');
+    }
   }
 
   Future<({bool success, String message})> toggle() async {

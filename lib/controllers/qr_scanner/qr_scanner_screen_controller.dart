@@ -15,21 +15,25 @@ class QrScannerScreenController with ChangeNotifier {
 
   void Function(QRViewController) getOnQRViewCreated(BuildContext context) {
     return (QRViewController controller) {
-      this.controller = controller;
-      notifyListeners();
+      // this.controller = controller;
+      // notifyListeners();
 
       controller.scannedDataStream.listen((scanData) async {
+        controller.pauseCamera();
         try {
           ({String message, bool success}) res = await repository.importConfig(json.decode(scanData.code ?? '{}'));
           if (context.mounted) {
             if (res.success) {
+              controller.dispose();
               Navigator.of(context).pop();
             } else {
-              _showSnackBar(context, res.message);
+              // _showSnackBar(context, res.message);
+              controller.resumeCamera();
             }
           }
         } on FormatException {
-          _showSnackBar(context, 'Bad Format');
+          // _showSnackBar(context, 'Bad Format');
+          controller.resumeCamera();
         }
       });
     };
