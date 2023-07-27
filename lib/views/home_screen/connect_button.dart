@@ -47,7 +47,6 @@ class _CustomFloatingActionButton extends StatelessWidget {
                     return const SizedBox.shrink();
                   }
                   homeScreenController.updateBytesInOut();
-                  print('object');
                   String time = Duration(seconds: snapshot.data!['time']).toString().split('.')[0];
                   return Text(time);
                 },

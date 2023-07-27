@@ -42,14 +42,16 @@ class RTP extends HiveObject implements Tunnel {
   @override
   Map<String, dynamic> toJson() {
     return {
-      "RTP": {
-        "remark": remark,
-        "serverAddress": serverAddress,
-        "serverPort": serverPort,
-        "localAddress": localAddress,
-        "localPort": localPort,
-        "secretKey": secretKey,
-      },
+      "Tunnel": {
+        "RTP": {
+          "remark": remark,
+          "serverAddress": serverAddress,
+          "serverPort": serverPort,
+          "localAddress": localAddress,
+          "localPort": localPort,
+          "secretKey": secretKey,
+        },
+      }
     };
   }
 
@@ -66,7 +68,7 @@ class RTP extends HiveObject implements Tunnel {
   @override
   Map<String, dynamic> getJsonConfiguration() {
     return {
-      "Tunnel": {...toJson()},
+      ...toJson(),
       "VPN": {
         ...vpn?.toJson() ?? {},
       },
