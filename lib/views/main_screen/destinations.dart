@@ -1,22 +1,12 @@
 part of 'main.dart';
 
-class _Destination {
-  const _Destination(this.index, this.title, this.icon, this.color, this.page);
-  final int index;
-  final String title;
-  final IconData icon;
-  final MaterialColor color;
-  final Widget page;
-}
-
 LogScreenController _logScreenController = LogScreenController();
 
-List<_Destination> _allDestinations = <_Destination>[
-  _Destination(
+List<Destination> _allDestinations = <Destination>[
+  Destination(
     0,
     'Home',
     Icons.home,
-    Colors.teal,
     ChangeNotifierProvider<HomeScreenController>(
       create: (BuildContext context) => HomeScreenController(
         repository: context.read<Repository>(),
@@ -25,11 +15,10 @@ List<_Destination> _allDestinations = <_Destination>[
       child: const HomeScreen(),
     ),
   ),
-  _Destination(
+  Destination(
     1,
     'Log',
     Icons.event_note,
-    Colors.cyan,
     ChangeNotifierProvider(
       create: (BuildContext context) => _logScreenController,
       child: const LogScreen(),

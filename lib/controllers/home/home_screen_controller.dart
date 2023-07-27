@@ -16,6 +16,7 @@ import '../data/repo/repository.dart';
 import '../log/log_screen_controller.dart';
 
 import 'package:flutter_background_service/flutter_background_service.dart';
+// ignore: depend_on_referenced_packages
 import 'package:flutter_background_service_android/flutter_background_service_android.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -23,7 +24,7 @@ import '../platform/platform_invoke.dart';
 
 const _notificationChannelId = 'my_foreground';
 
-class MyTickerProvider extends TickerProvider {
+class _MyTickerProvider extends TickerProvider {
   @override
   Ticker createTicker(TickerCallback onTick) => Ticker(onTick);
 }
@@ -31,24 +32,98 @@ class MyTickerProvider extends TickerProvider {
 class HomeScreenController with ChangeNotifier {
   Repository repository;
 
-  late final AnimationController _animationController = AnimationController(
+  final AnimationController _connectButtonAnimationController = AnimationController(
     duration: const Duration(seconds: 2),
-    vsync: MyTickerProvider(),
+    vsync: _MyTickerProvider(),
   );
 
-  VpnStatus? status;
-  VPNStage? stage;
   late final OpenVPN engine;
   bool granted = false;
 
   LogScreenController logScreenController;
 
+  VPNStage? lastStage;
+  late Animation<double> connectButtonAnimation =
+      Tween<double>(begin: 0, end: 1).animate(_connectButtonAnimationController);
+
   HomeScreenController({
     required this.repository,
     required this.logScreenController,
-  });
+  }) {
+    engine = OpenVPN(
+      onVpnStageChanged: (stage, raw) {
+        if (lastStage != stage) {
+          _addLog(stage.toString());
+          lastStage = stage;
+        }
+      },
+    );
 
-  Future<void> initializeService() async {
+    engine.initialize(
+      groupIdentifier: "group.com.laskarmedia.vpn",
+      providerBundleIdentifier: "id.laskarmedia.openvpnFlutterExample.VPNExtension",
+      localizedDescription: "VPN by Nizwar",
+      lastStage: (stage) {
+        if (lastStage != stage) {
+          _addLog(stage.toString());
+          lastStage = stage;
+        }
+      },
+    );
+    _setAsBackground();
+    _initializeService();
+  }
+
+  void updateBytesInOut() async {
+    Map<String, dynamic> vpnStatus = (await engine.status()).toJson();
+    logScreenController.updateByteIn(vpnStatus.containsKey('byte_in') ? vpnStatus['byte_in'] : '0');
+    logScreenController.updateByteOut(vpnStatus.containsKey('byte_out') ? vpnStatus['byte_out'] : '0');
+  }
+
+  Future<({bool success, String message})> toggle() async {
+    if (repository.isSelectedConfigInBox) {
+      if (Platform.isAndroid) {
+        granted = await engine.requestPermissionAndroid();
+      }
+
+      if (granted) {
+        if (isConnected) {
+          _addLog('disconnecting...');
+          _connectButtonAnimationController.reverse();
+
+          await _disconnect();
+          logScreenController.reset();
+        } else {
+          _addLog('connecting...');
+          _connectButtonAnimationController.forward();
+          await _connect();
+        }
+        notifyListeners();
+        return (success: true, message: 'success');
+      } else {
+        return (success: false, message: 'Request Permission');
+      }
+    } else {
+      return (success: false, message: 'Please Select A Config Before Connect');
+    }
+  }
+
+  Future<({bool success, String message})> importFromClipboard() async {
+    ClipboardData? data = await Clipboard.getData(Clipboard.kTextPlain);
+    if (data != null) {
+      Map<String, dynamic> configJson;
+      try {
+        configJson = json.decode(data.text ?? '{}');
+      } on FormatException {
+        return (success: false, message: "Invalid Format");
+      }
+
+      return await repository.importConfig(configJson);
+    }
+    return (success: false, message: "No Data");
+  }
+
+  Future<void> _initializeService() async {
     final service = FlutterBackgroundService();
 
     /// OPTIONAL, using custom notification channel id
@@ -77,7 +152,7 @@ class HomeScreenController with ChangeNotifier {
     await service.configure(
       androidConfiguration: AndroidConfiguration(
         // this will be executed when app is in foreground or background in separated isolate
-        onStart: onStart,
+        onStart: _onStart,
 
         // auto start service
         autoStart: false,
@@ -93,16 +168,16 @@ class HomeScreenController with ChangeNotifier {
         autoStart: false,
 
         // this will be executed when app is in foreground in separated isolate
-        onForeground: onStart,
+        onForeground: _onStart,
 
         // you have to enable background fetch capability on xcode project
-        onBackground: onIosBackground,
+        onBackground: _onIosBackground,
       ),
     );
   }
 
   @pragma('vm:entry-point')
-  Future<bool> onIosBackground(ServiceInstance service) async {
+  Future<bool> _onIosBackground(ServiceInstance service) async {
     WidgetsFlutterBinding.ensureInitialized();
     DartPluginRegistrant.ensureInitialized();
 
@@ -110,7 +185,7 @@ class HomeScreenController with ChangeNotifier {
   }
 
   @pragma('vm:entry-point')
-  static void onStart(ServiceInstance service) async {
+  static void _onStart(ServiceInstance service) async {
     // Only available for flutter 3.0.0 and later
     DartPluginRegistrant.ensureInitialized();
 
@@ -215,89 +290,36 @@ class HomeScreenController with ChangeNotifier {
     });
   }
 
-  Future<bool> startService() async {
+  Future<bool> _startService() async {
     return await FlutterBackgroundService().startService();
   }
 
-  void stopService() {
+  void _stopService() {
     FlutterBackgroundService().invoke("stopService");
   }
 
-  void setAsBackground() {
+  void _setAsBackground() {
     FlutterBackgroundService().invoke("setAsBackground");
   }
 
-  void setAsForeground() {
+  void _setAsForeground() {
     FlutterBackgroundService().invoke("setAsForeground");
   }
 
-  void stopTunnelService() {
+  void _stopTunnelService() {
     FlutterBackgroundService().invoke("stopTunnel");
   }
 
-  void addLog(String log) {
+  void _addLog(String log) {
     logScreenController.addLog(log);
-  }
-
-  void updateByteIn() async {
-    Map<String, dynamic> status = (await engine.status()).toJson();
-    logScreenController.updateByteIn(status.containsKey('byte_in') ? status['byte_in'] : '0');
-  }
-
-  void updateByteOut() async {
-    Map<String, dynamic> status = (await engine.status()).toJson();
-    logScreenController.updateByteOut(status.containsKey('byte_out') ? status['byte_out'] : '0');
-  }
-
-  Future<({bool success, String message})> toggle() async {
-    if (repository.isSelectedConfigInBox) {
-      if (Platform.isAndroid) {
-        granted = await engine.requestPermissionAndroid();
-      }
-
-      if (granted) {
-        if (isConnected) {
-          addLog('disconnecting...');
-          _animationController.reverse();
-
-          await _disconnect();
-          logScreenController.reset();
-        } else {
-          addLog('connecting...');
-          _animationController.forward();
-          await _connect();
-        }
-        notifyListeners();
-        return (success: true, message: 'success');
-      } else {
-        return (success: false, message: 'Request Permission');
-      }
-    } else {
-      return (success: false, message: 'Please Select A Config Before Connect');
-    }
-  }
-
-  Future<({bool success, String message})> importFromClipboard() async {
-    ClipboardData? data = await Clipboard.getData(Clipboard.kTextPlain);
-    if (data != null) {
-      Map<String, dynamic> configJson;
-      try {
-        configJson = json.decode(data.text ?? '{}');
-      } on FormatException {
-        return (success: false, message: "Invalid Format");
-      }
-
-      return await repository.importConfig(configJson);
-    }
-    return (success: false, message: "No Data");
   }
 
   Future<void> _connect() async {
     Tunnel selectedTunnel = repository.selectedTunnel;
     String tunnelName = await _saveTunnelToSharedPreferences(selectedTunnel);
-    await initializeService();
-    await startService();
-    setAsBackground();
+    await _initializeService();
+    await _startService();
+    _setAsBackground();
     await _startVPN(repository.selectedTunnel.vpn, tunnelName);
     await repository.connect();
   }
@@ -348,19 +370,20 @@ class HomeScreenController with ChangeNotifier {
 
   Future<void> _disconnect() async {
     engine.disconnect();
-    stopTunnelService();
-    stopService();
+    _stopTunnelService();
+    _stopService();
     await repository.disconnect();
   }
 
   bool get isConnected => repository.isConnected;
 
-  AnimationController get animationController => _animationController;
+  AnimationController get animationController => _connectButtonAnimationController;
 
   @override
   void dispose() {
+    _connectButtonAnimationController.dispose();
     if (isConnected) {
-      setAsForeground();
+      _setAsForeground();
     }
 
     super.dispose();

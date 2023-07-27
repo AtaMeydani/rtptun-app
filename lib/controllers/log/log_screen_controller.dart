@@ -5,8 +5,10 @@ import 'package:get_ip_address/get_ip_address.dart';
 class LogScreenController with ChangeNotifier {
   final List<String> logs = [];
   final scrollController = ScrollController();
-  String byteIn = '0';
-  String byteOut = '0';
+  static const int _kilobyte = 1024;
+  static const int _megabyte = _kilobyte * 1024;
+  String byteIn = '0 B';
+  String byteOut = '0 B';
 
   LogScreenController() {
     FlutterBackgroundService().on('tunnel_out').listen((event) {
@@ -21,34 +23,23 @@ class LogScreenController with ChangeNotifier {
   void addLog(String log) async {
     logs.add(log);
     notifyListeners();
-    jump();
-  }
-
-  void clear() {
-    logs.clear();
-    notifyListeners();
+    _jump();
   }
 
   void updateByteIn(String bytes) {
-    byteIn = bytes;
+    byteIn = _formatBytes(int.parse(bytes));
     notifyListeners();
   }
 
   void updateByteOut(String bytes) {
-    byteOut = bytes;
+    byteOut = _formatBytes(int.parse(bytes));
     notifyListeners();
   }
 
   void reset() {
     updateByteIn('0');
     updateByteOut('0');
-    clear();
-  }
-
-  void jump() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      scrollController.jumpTo(scrollController.position.maxScrollExtent);
-    });
+    _clear();
   }
 
   void checkIP() async {
@@ -62,6 +53,31 @@ class LogScreenController with ChangeNotifier {
     } on IpAddressException catch (exception) {
       /// Handle the exception.
       addLog(exception.message);
+    }
+  }
+
+  void _clear() {
+    logs.clear();
+    notifyListeners();
+  }
+
+  void _jump() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      scrollController.jumpTo(scrollController.position.maxScrollExtent);
+    });
+  }
+
+  String _formatBytes(int bytes) {
+    if (bytes <= 0) return "0 B";
+
+    if (bytes < _kilobyte) {
+      return "$bytes B";
+    } else if (bytes < _megabyte) {
+      double kb = bytes / _kilobyte;
+      return "${kb.toStringAsFixed(2)} KB";
+    } else {
+      double mb = bytes / _megabyte;
+      return "${mb.toStringAsFixed(2)} MB";
     }
   }
 

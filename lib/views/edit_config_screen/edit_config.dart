@@ -5,23 +5,12 @@ import 'package:rtptun_app/controllers/config/config_controller.dart';
 import 'package:rtptun_app/models/open_vpn/openvpn_model.dart';
 import 'package:rtptun_app/models/rtp/rtp_model.dart';
 
-class EditConfigScreen extends StatefulWidget {
+class EditConfigScreen extends StatelessWidget {
   const EditConfigScreen({super.key});
 
   @override
-  State<EditConfigScreen> createState() => _EditConfigScreenState();
-}
-
-class _EditConfigScreenState extends State<EditConfigScreen> {
-  @override
-  void initState() {
-    context.read<ConfigController>().initTunnelTextFields();
-    context.read<ConfigController>().initVPNTextFields();
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    ConfigController configController = context.read<ConfigController>();
     return Scaffold(
       appBar: AppBar(
         title: const Text('Configuration file'),
@@ -29,7 +18,7 @@ class _EditConfigScreenState extends State<EditConfigScreen> {
           IconButton(
             icon: const Icon(Icons.delete_forever),
             onPressed: () {
-              context.read<ConfigController>().delete();
+              configController.delete();
               Navigator.of(context).pop();
             },
           ),
@@ -46,8 +35,8 @@ class _EditConfigScreenState extends State<EditConfigScreen> {
               selector: (_, ConfigController configController) => configController.saving,
             ),
             onPressed: () async {
-              if (await context.read<ConfigController>().saveChanges()) {
-                if (!mounted) return;
+              if (await configController.saveChanges()) {
+                if (!context.mounted) return;
                 Navigator.of(context).pop();
               }
             },
@@ -55,7 +44,7 @@ class _EditConfigScreenState extends State<EditConfigScreen> {
         ],
       ),
       body: Form(
-        key: context.read<ConfigController>().formKey,
+        key: configController.formKey,
         child: ListView(padding: const EdgeInsets.all(20), children: [
           ListTile(
             title: const Text('Select Tunnel'),
@@ -68,11 +57,8 @@ class _EditConfigScreenState extends State<EditConfigScreen> {
             onTap: () {
               _showDialog(context: context, items: {
                 'RTP': () {
-                  return context.read<ConfigController>().changeSelectedTunnel(RTP());
+                  return configController.changeSelectedTunnel(RTP());
                 },
-                // 'No Tunnel': () {
-                //   return context.read<ConfigController>().changeSelectedTunnel(null);
-                // }
               });
             },
           ),
@@ -101,10 +87,10 @@ class _EditConfigScreenState extends State<EditConfigScreen> {
                     onTap: () {
                       _showDialog(context: context, items: {
                         'OpenVPN': () {
-                          return context.read<ConfigController>().changeSelectedVPN(OpenVPNModel());
+                          return configController.changeSelectedVPN(OpenVPNModel());
                         },
                         'No VPN': () {
-                          return context.read<ConfigController>().changeSelectedVPN(null);
+                          return configController.changeSelectedVPN(null);
                         }
                       });
                     },

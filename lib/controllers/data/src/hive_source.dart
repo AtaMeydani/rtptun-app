@@ -110,6 +110,14 @@ class HiveDataSource implements DataSource {
   }
 
   @override
+  Future<void> deleteAllConfigs() async {
+    box.values.whereType<Tunnel>().forEach((Tunnel element) async {
+      await element.delete();
+    });
+    box.put(_selectedConfigKey, -1);
+  }
+
+  @override
   bool get isConnected => box.get(_isConnectedKey, defaultValue: false);
 
   @override

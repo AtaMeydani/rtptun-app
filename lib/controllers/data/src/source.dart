@@ -12,5 +12,6 @@ abstract class DataSource {
   Future<void> delete(Tunnel? tunnel);
   ({String title, String subtitle}) getTunnelListTileInfo(int index);
   Future<({bool success, String message})> importConfig(Map<String, dynamic> configJson);
+  Future<void> deleteAllConfigs();
   bool get isSelectedConfigInBox;
 }

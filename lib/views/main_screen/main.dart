@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:rtptun_app/controllers/home/home_screen_controller.dart';
 import 'package:rtptun_app/controllers/data/repo/repository.dart';
 import 'package:rtptun_app/controllers/log/log_screen_controller.dart';
+import 'package:rtptun_app/models/destination/destination_model.dart';
 
 import '../home_screen/home.dart';
 import '../log_screen/log.dart';
@@ -30,7 +31,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin<M
   void initState() {
     super.initState();
 
-    _faders = _allDestinations.map<AnimationController>((_Destination destination) {
+    _faders = _allDestinations.map<AnimationController>((Destination destination) {
       return AnimationController(vsync: this, duration: const Duration(milliseconds: 1200));
     }).toList();
     _faders?[_currentIndex].value = 1.0;
@@ -64,10 +65,10 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin<M
               showSelectedLabels: true,
               showUnselectedLabels: true,
               type: BottomNavigationBarType.shifting,
-              items: _allDestinations.map((_Destination destination) {
+              items: _allDestinations.map((Destination destination) {
                 return BottomNavigationBarItem(
                   icon: Icon(destination.icon),
-                  backgroundColor: destination.color,
+                  backgroundColor: Theme.of(context).colorScheme.primary,
                   label: destination.title,
                 );
               }).toList(),
@@ -76,7 +77,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin<M
           body: SafeArea(
             child: Stack(
               fit: StackFit.expand,
-              children: _allDestinations.map((_Destination destination) {
+              children: _allDestinations.map((Destination destination) {
                 final Widget view = FadeTransition(
                   opacity: _faders![destination.index].drive(CurveTween(curve: Curves.fastOutSlowIn)),
                   child: KeyedSubtree(

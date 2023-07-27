@@ -87,19 +87,22 @@ class ConfigController with ChangeNotifier, ValidationMixin {
   Tunnel? tunnel;
   VPN? vpn;
   Repository repository;
+
   ConfigController({required this.repository, this.tunnel}) {
     vpn = tunnel?.vpn;
+    _initTunnelTextFields();
+    _initVPNTextFields();
   }
 
   void changeSelectedTunnel(Tunnel? tunnel) {
     this.tunnel = tunnel;
-    initTunnelTextFields();
+    _initTunnelTextFields();
     notifyListeners();
   }
 
   void changeSelectedVPN(VPN? vpn) {
     this.vpn = vpn;
-    initVPNTextFields();
+    _initVPNTextFields();
     notifyListeners();
   }
 
@@ -123,6 +126,20 @@ class ConfigController with ChangeNotifier, ValidationMixin {
       }
     }
     return false;
+  }
+
+  void delete() async {
+    await repository.delete(tunnel);
+  }
+
+  ({String title, String subtitle, Tunnel config}) getTunnelListTileInfo(int index) {
+    final Tunnel config = repository.getTunnelByIndex(index);
+
+    if (config is RTP) {
+      return (title: config.remark ?? '', subtitle: '${config.serverAddress} : ${config.serverPort}', config: config);
+    }
+
+    return (title: 'unknown config', subtitle: 'unknown config', config: RTP());
   }
 
   _saveTunnelObject(Tunnel tunnel) {
@@ -152,18 +169,29 @@ class ConfigController with ChangeNotifier, ValidationMixin {
     }
   }
 
-  void delete() async {
-    await repository.delete(tunnel);
+  void _initTunnelTextFields() {
+    switch (tunnel.runtimeType) {
+      case RTP:
+        RTP rtp = tunnel as RTP;
+        _remarkFieldController.text = rtp.remark ?? 'NewRTPConfig';
+        _serverAddressFieldController.text = rtp.serverAddress ?? '';
+        _serverPortFieldController.text = rtp.serverPort ?? '';
+        _localAddressFieldController.text = rtp.localAddress ?? '127.0.0.1';
+        _localPortFieldController.text = rtp.localPort ?? '';
+        _secretKeyFieldController.text = rtp.secretKey ?? '';
+      default:
+    }
   }
 
-  ({String title, String subtitle, Tunnel config}) getTunnelListTileInfo(int index) {
-    final Tunnel config = repository.getTunnelByIndex(index);
-
-    if (config is RTP) {
-      return (title: config.remark ?? '', subtitle: '${config.serverAddress} : ${config.serverPort}', config: config);
+  void _initVPNTextFields() {
+    switch (vpn.runtimeType) {
+      case OpenVPNModel:
+        OpenVPNModel openvpn = vpn as OpenVPNModel;
+        _vpnConfigFieldController.text = openvpn.config ?? '';
+        _vpnUsernameFieldController.text = openvpn.username ?? '';
+        _vpnPasswordFieldController.text = openvpn.password ?? '';
+      default:
     }
-
-    return (title: 'unknown config', subtitle: 'unknown config', config: RTP());
   }
 
   GlobalKey<FormState> get formKey => _formKey;
@@ -186,20 +214,6 @@ class ConfigController with ChangeNotifier, ValidationMixin {
     }
   }
 
-  void initTunnelTextFields() {
-    switch (tunnel.runtimeType) {
-      case RTP:
-        RTP rtp = tunnel as RTP;
-        _remarkFieldController.text = rtp.remark ?? 'NewRTPConfig';
-        _serverAddressFieldController.text = rtp.serverAddress ?? '';
-        _serverPortFieldController.text = rtp.serverPort ?? '';
-        _localAddressFieldController.text = rtp.localAddress ?? '127.0.0.1';
-        _localPortFieldController.text = rtp.localPort ?? '';
-        _secretKeyFieldController.text = rtp.secretKey ?? '';
-      default:
-    }
-  }
-
   List<Widget> get vpnFields {
     switch (vpn.runtimeType) {
       case OpenVPNModel:
@@ -211,17 +225,6 @@ class ConfigController with ChangeNotifier, ValidationMixin {
       default:
         // vpn is null
         return [];
-    }
-  }
-
-  void initVPNTextFields() {
-    switch (vpn.runtimeType) {
-      case OpenVPNModel:
-        OpenVPNModel openvpn = vpn as OpenVPNModel;
-        _vpnConfigFieldController.text = openvpn.config ?? '';
-        _vpnUsernameFieldController.text = openvpn.username ?? '';
-        _vpnPasswordFieldController.text = openvpn.password ?? '';
-      default:
     }
   }
 

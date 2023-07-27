@@ -56,6 +56,12 @@ class Repository with ChangeNotifier implements DataSource {
   }
 
   @override
+  Future<void> deleteAllConfigs() async {
+    await localDataSource.deleteAllConfigs();
+    notifyListeners();
+  }
+
+  @override
   Tunnel get selectedTunnel => localDataSource.selectedTunnel;
 
   @override

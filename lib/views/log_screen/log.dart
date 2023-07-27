@@ -1,24 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rtptun_app/controllers/log/log_screen_controller.dart';
-import 'package:logger/logger.dart';
 
-var logger = Logger(
-  printer: PrettyPrinter(),
-);
-
-class LogScreen extends StatefulWidget {
+class LogScreen extends StatelessWidget {
   const LogScreen({super.key});
-
-  @override
-  State<LogScreen> createState() => _LogScreenState();
-}
-
-class _LogScreenState extends State<LogScreen> {
-  @override
-  void initState() {
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -89,7 +74,7 @@ class _ListItem extends StatelessWidget {
     return ListTile(
       title: Text(
         item,
-        style: const TextStyle(color: Colors.black),
+        style: TextStyle(color: Theme.of(context).colorScheme.primary),
       ),
     );
   }
