@@ -70,12 +70,13 @@ class HomeScreenController with ChangeNotifier {
         }
       },
     );
-    _setAsBackground();
+
     _initializeService();
+    _setAsBackground();
   }
 
   void updateBytesInOut() async {
-    if (await engine.isConnected()) {
+    if (engine.initialized && await engine.isConnected()) {
       Map<String, dynamic> vpnStatus = (await engine.status()).toJson();
       logScreenController.updateByteIn(vpnStatus.containsKey('byte_in') ? vpnStatus['byte_in'] : '0');
       logScreenController.updateByteOut(vpnStatus.containsKey('byte_out') ? vpnStatus['byte_out'] : '0');
@@ -215,7 +216,6 @@ class HomeScreenController with ChangeNotifier {
     process = await Process.start(
       path!,
       parameters!,
-      runInShell: true,
     );
 
     process.stdout.listen((event) {
@@ -276,19 +276,31 @@ class HomeScreenController with ChangeNotifier {
       seconds++;
     });
 
-    service.on('stopService').listen((event) {
-      service.stopSelf();
-    });
+    service.on('stopService').listen((event) async {
+      while (true) {
+        bool? killed = process?.kill(ProcessSignal.sigkill);
+        if (killed != null && killed) {
+          break;
+        }
 
-    service.on('stopTunnel').listen((event) {
+        service.invoke(
+          'tunnel_out',
+          {
+            "stdout": "Waiting for service to terminate...",
+          },
+        );
+
+        await Future.delayed(const Duration(seconds: 1));
+      }
+
       timer.cancel();
-      process?.kill();
       service.invoke(
         'timer',
         {
           "time": 0,
         },
       );
+      await service.stopSelf();
     });
   }
 
@@ -306,10 +318,6 @@ class HomeScreenController with ChangeNotifier {
 
   void _setAsForeground() {
     FlutterBackgroundService().invoke("setAsForeground");
-  }
-
-  void _stopTunnelService() {
-    FlutterBackgroundService().invoke("stopTunnel");
   }
 
   void _addLog(String log) {
@@ -372,7 +380,6 @@ class HomeScreenController with ChangeNotifier {
 
   Future<void> _disconnect() async {
     engine.disconnect();
-    _stopTunnelService();
     _stopService();
     await repository.disconnect();
   }

@@ -3,14 +3,16 @@ import 'package:provider/provider.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:rtptun_app/controllers/qr_scanner/qr_scanner_screen_controller.dart';
 
-class QRViewExample extends StatelessWidget {
-  QRViewExample({Key? key}) : super(key: key);
+class QRViewScreen extends StatelessWidget {
+  QRViewScreen({Key? key}) : super(key: key);
 
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
 
   @override
   Widget build(BuildContext context) {
     QrScannerScreenController qrScannerScreenController = context.read<QrScannerScreenController>();
+    ColorScheme colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
       body: Stack(
         children: [
@@ -25,6 +27,7 @@ class QRViewExample extends StatelessWidget {
             top: 20,
             right: 20,
             child: IconButton(
+              color: colorScheme.primary,
               onPressed: () async {
                 await qrScannerScreenController.toggleFlash();
               },
@@ -43,7 +46,7 @@ class QRViewExample extends StatelessWidget {
                           return const Icon(Icons.flash_off);
                         }
                       } else {
-                        return const Icon(Icons.hourglass_empty);
+                        return const Icon(Icons.flash_off);
                       }
                     },
                   );
@@ -55,6 +58,7 @@ class QRViewExample extends StatelessWidget {
             top: 20,
             left: 20,
             child: IconButton(
+              color: colorScheme.primary,
               onPressed: () {
                 Navigator.of(context).pop();
               },

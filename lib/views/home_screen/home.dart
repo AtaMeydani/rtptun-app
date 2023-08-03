@@ -165,7 +165,7 @@ class HomeScreen extends StatelessWidget {
                     MaterialPageRoute(
                       builder: (context) => ChangeNotifierProvider<QrScannerScreenController>(
                         create: (context) => QrScannerScreenController(repository: repository),
-                        child: QRViewExample(),
+                        child: QRViewScreen(),
                       ),
                     ),
                   );
