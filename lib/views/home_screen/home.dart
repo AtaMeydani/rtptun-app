@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:provider/provider.dart';
@@ -35,9 +36,14 @@ enum AddPopupMenuItem {
 
 const githubUrl = 'https://github.com/AtaMeydani/rtptun-app';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     HomeScreenController homeScreenController = context.read<HomeScreenController>();
@@ -175,7 +181,6 @@ class HomeScreen extends StatelessWidget {
                   if (!res.success && context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        behavior: SnackBarBehavior.floating,
                         showCloseIcon: true,
                         content: Text(res.message),
                         duration: const Duration(seconds: 2),

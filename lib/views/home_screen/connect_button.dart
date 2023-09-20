@@ -32,7 +32,7 @@ class _CustomFloatingActionButton extends StatelessWidget {
                       // margin: EdgeInsets.only(bottom: 80),
                       showCloseIcon: true,
                       content: Text(value.message),
-                      duration: const Duration(seconds: 2),
+                      duration: const Duration(seconds: 1),
                     ),
                   );
                 }

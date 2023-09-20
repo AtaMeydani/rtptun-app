@@ -72,7 +72,7 @@ class HomeScreenController with ChangeNotifier {
     );
 
     _initializeService();
-    _setAsBackground();
+    // _setAsBackground();
   }
 
   void updateBytesInOut() async {
@@ -132,7 +132,7 @@ class HomeScreenController with ChangeNotifier {
     /// OPTIONAL, using custom notification channel id
     const AndroidNotificationChannel channel = AndroidNotificationChannel(
       _notificationChannelId, // id
-      'MY FOREGROUND SERVICE', // title
+      'RTP Tunnel Service', // title
       description: 'This channel is used for important notifications.', // description
       importance: Importance.low, // importance must be at low or higher level
     );
@@ -211,6 +211,7 @@ class HomeScreenController with ChangeNotifier {
 
     SharedPreferences preferences = await SharedPreferences.getInstance();
     String? path = preferences.getString('TunnelPath');
+    String? remark = preferences.getString('Remark');
     List<String>? parameters = preferences.getStringList('TunnelParams');
 
     process = await Process.start(
@@ -237,17 +238,20 @@ class HomeScreenController with ChangeNotifier {
     });
 
     int seconds = 0;
+    DateTime now;
 
     // bring to foreground
     Timer timer = Timer.periodic(const Duration(seconds: 1), (timer) async {
       if (service is AndroidServiceInstance) {
         if (await service.isForegroundService()) {
+          now = DateTime.now();
+
           /// OPTIONAL for use custom notification
           /// the notification id must be equals with AndroidConfiguration when you call configure() method.
           flutterLocalNotificationsPlugin.show(
             888,
-            'COOL SERVICE',
-            'Awesome ${DateTime.now()}',
+            'RTPTUN APP',
+            '$remark ${now.hour}:${now.minute}:${now.second}',
             const NotificationDetails(
               android: AndroidNotificationDetails(
                 _notificationChannelId,
@@ -259,10 +263,10 @@ class HomeScreenController with ChangeNotifier {
           );
 
           // if you don't using custom notification, uncomment this
-          service.setForegroundNotificationInfo(
-            title: "My App Service",
-            content: "Updated at ${DateTime.now()}",
-          );
+          // service.setForegroundNotificationInfo(
+          //   title: "RTP Tunnel Service",
+          //   content: "Updated at ${DateTime.now()}",
+          // );
         }
       }
 
@@ -277,29 +281,25 @@ class HomeScreenController with ChangeNotifier {
     });
 
     service.on('stopService').listen((event) async {
-      while (true) {
-        bool? killed = process?.kill(ProcessSignal.sigkill);
-        if (killed != null && killed) {
-          break;
-        }
-
-        service.invoke(
-          'tunnel_out',
-          {
-            "stdout": "Waiting for service to terminate...",
-          },
-        );
-
-        await Future.delayed(const Duration(seconds: 1));
-      }
-
       timer.cancel();
+
       service.invoke(
         'timer',
         {
           "time": 0,
         },
       );
+
+      bool? killed = process?.kill(ProcessSignal.sigkill);
+      if (killed != null && !killed) {
+        service.invoke(
+          'tunnel_out',
+          {
+            "stdout": "Waiting for service to terminate...",
+          },
+        );
+      }
+
       await service.stopSelf();
     });
   }
@@ -312,9 +312,9 @@ class HomeScreenController with ChangeNotifier {
     FlutterBackgroundService().invoke("stopService");
   }
 
-  void _setAsBackground() {
-    FlutterBackgroundService().invoke("setAsBackground");
-  }
+  // void _setAsBackground() {
+  //   FlutterBackgroundService().invoke("setAsBackground");
+  // }
 
   void _setAsForeground() {
     FlutterBackgroundService().invoke("setAsForeground");
@@ -329,7 +329,8 @@ class HomeScreenController with ChangeNotifier {
     String tunnelName = await _saveTunnelToSharedPreferences(selectedTunnel);
     await _initializeService();
     await _startService();
-    _setAsBackground();
+    // _setAsBackground();
+    _setAsForeground();
     await _startVPN(repository.selectedTunnel.vpn, tunnelName);
     await repository.connect();
   }
@@ -355,6 +356,8 @@ class HomeScreenController with ChangeNotifier {
           '-k',
           rtp.secretKey!,
         ]);
+
+        await preferences.setString('Remark', rtp.remark ?? 'Unknown');
 
         return Future.value(rtp.remark);
       default:
@@ -390,9 +393,10 @@ class HomeScreenController with ChangeNotifier {
 
   @override
   void dispose() {
-    _connectButtonAnimationController.dispose();
     if (isConnected) {
       _setAsForeground();
+    } else {
+      _connectButtonAnimationController.dispose();
     }
 
     super.dispose();
